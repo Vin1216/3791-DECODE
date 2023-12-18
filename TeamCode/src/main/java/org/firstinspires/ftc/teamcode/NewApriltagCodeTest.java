@@ -49,6 +49,13 @@ public class NewApriltagCodeTest extends LinearOpMode {
         waitForStart();
         if(opModeIsActive()) {
             MoveTowardAprilTag();
+            while(opModeIsActive()) {
+                telemetry.addData("ID: ", myAprilTagIdCode);
+                telemetry.addLine(String.format("X: %6.1f", myAprilTagPoseX));
+                telemetry.addLine(String.format("Yaw: %6.1f", myAprilTagPoseYaw));
+                telemetry.addLine(String.format("Range & Bearing: %6.1f %6.1f", myAprilTagPoseRange, myAprilTagPoseBearing));
+                telemetry.update();
+            }
         }
     }
 
