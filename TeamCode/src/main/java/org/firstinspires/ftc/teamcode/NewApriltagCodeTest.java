@@ -1,17 +1,26 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-import org.firstinspires.ftc.robotcore.external.JavaUtil;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import java.util.List;
 
+@Autonomous
 public class NewApriltagCodeTest extends LinearOpMode {
+    private BNO055IMU imu;
+    float Z_Rotation;
     DcMotor FrontRight;
     DcMotor FrontLeft;
     DcMotor RearRight;
@@ -44,6 +53,7 @@ public class NewApriltagCodeTest extends LinearOpMode {
         double wheelCircumference = 12.56;
         ticksPerInch = ticksperRevolution / wheelCircumference;
         InitVisionPortal();
+        Init_IMU();
 
         reqID = 2;
         waitForStart();
@@ -86,21 +96,37 @@ public class NewApriltagCodeTest extends LinearOpMode {
     private void MoveTowardAprilTag() {
         DetectAprilTags();
         if (myAprilTagPoseX < 0) {
-            while (myAprilTagPoseX < 0) {
-                FrontRight.setPower(0.5);
-                FrontLeft.setPower(-0.5);
-                RearRight.setPower(-0.5);
-                RearLeft.setPower(0.5);
-                DetectAprilTags();
+            while (Z_Rotation < 170) {
+                FrontRight.setPower(0.3);
+                FrontLeft.setPower(-0.3);
+                RearRight.setPower(0.3);
+                RearLeft.setPower(-0.3);
+                IMU_Telemetry();
+            }
+            MoveForwardEncoder((int)myAprilTagPoseX);
+            while (Z_Rotation > 90) {
+                FrontRight.setPower(-0.3);
+                FrontLeft.setPower(0.3);
+                RearRight.setPower(-0.3);
+                RearLeft.setPower(0.3);
+                IMU_Telemetry();
             }
         }
         else {
-            while (myAprilTagPoseX > 0) {
-                FrontRight.setPower(-0.5);
-                FrontLeft.setPower(0.5);
-                RearRight.setPower(0.5);
-                RearLeft.setPower(-0.5);
-                DetectAprilTags();
+            while (Z_Rotation > 0) {
+                FrontRight.setPower(-0.3);
+                FrontLeft.setPower(0.3);
+                RearRight.setPower(-0.3);
+                RearLeft.setPower(0.3);
+                IMU_Telemetry();
+            }
+            MoveForwardEncoder((int)myAprilTagPoseX);
+            while (Z_Rotation < 90) {
+                FrontRight.setPower(0.3);
+                FrontLeft.setPower(-0.3);
+                RearRight.setPower(0.3);
+                RearLeft.setPower(-0.3);
+                IMU_Telemetry();
             }
         }
         FrontRight.setPower(0);
@@ -111,16 +137,16 @@ public class NewApriltagCodeTest extends LinearOpMode {
         if (myAprilTagPoseYaw < 0) {
             while (myAprilTagPoseYaw < 0) {
                 FrontRight.setPower(0.15);
-                FrontLeft.setPower(0.4);
+                FrontLeft.setPower(0.2);
                 RearRight.setPower(0.15);
-                RearLeft.setPower(0.4);
+                RearLeft.setPower(0.2);
                 DetectAprilTags();
             }
         }
         else {
-            FrontRight.setPower(0.4);
+            FrontRight.setPower(0.2);
             FrontLeft.setPower(0.15);
-            RearRight.setPower(0.4);
+            RearRight.setPower(0.2);
             RearLeft.setPower(0.15);
             DetectAprilTags();
         }
@@ -128,7 +154,7 @@ public class NewApriltagCodeTest extends LinearOpMode {
         FrontLeft.setPower(0);
         RearRight.setPower(0);
         RearLeft.setPower(0);
-
+        DetectAprilTags();
         MoveForwardEncoder((int)myAprilTagPoseRange - 2);
     }
 
@@ -173,5 +199,36 @@ public class NewApriltagCodeTest extends LinearOpMode {
         RearLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         RearRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
+    private void Init_IMU() {
+        BNO055IMU.Parameters imuParameters;
 
+        // Create new IMU Parameters object.
+        imuParameters = new BNO055IMU.Parameters();
+        // Use degrees as angle unit.
+        imuParameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        // Express acceleration as m/s^2.
+        imuParameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        // Disable logging.
+        imuParameters.loggingEnabled = false;
+        // Initialize IMU.
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
+        imu.initialize(imuParameters);
+        // Prompt user to press start button.
+        telemetry.addData("IMU ON", "Press start to continue...");
+    }
+    private void IMU_Telemetry() {
+        Orientation angles;
+        Acceleration gravity;
+
+        // Get absolute orientation
+        // Get acceleration due to force of gravity.
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        gravity = imu.getGravity();
+        Z_Rotation = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
+        // Display orientation info.
+        telemetry.addData("rot about Z", angles.firstAngle);
+        telemetry.addData("rot about Y", angles.secondAngle);
+        telemetry.addData("rot about X", angles.thirdAngle);
+        telemetry.update();
+    }
 }
