@@ -94,9 +94,11 @@ public class NewApriltagCodeTest extends LinearOpMode {
     }
 
     private void MoveTowardAprilTag() {
+        double rotationStatic;
         DetectAprilTags();
         if (myAprilTagPoseX < 0) {
-            while (Z_Rotation < 170) {
+            rotationStatic = Z_Rotation + 75;
+            while (Z_Rotation < rotationStatic) {
                 FrontRight.setPower(0.3);
                 FrontLeft.setPower(-0.3);
                 RearRight.setPower(0.3);
@@ -104,7 +106,8 @@ public class NewApriltagCodeTest extends LinearOpMode {
                 IMU_Telemetry();
             }
             MoveForwardEncoder((int)myAprilTagPoseX);
-            while (Z_Rotation > 90) {
+            rotationStatic = Z_Rotation - 75;
+            while (Z_Rotation > rotationStatic) {
                 FrontRight.setPower(-0.3);
                 FrontLeft.setPower(0.3);
                 RearRight.setPower(-0.3);
@@ -113,7 +116,8 @@ public class NewApriltagCodeTest extends LinearOpMode {
             }
         }
         else {
-            while (Z_Rotation > 0) {
+            rotationStatic = Z_Rotation - 75;
+            while (Z_Rotation > (Z_Rotation - 75)) {
                 FrontRight.setPower(-0.3);
                 FrontLeft.setPower(0.3);
                 RearRight.setPower(-0.3);
@@ -121,7 +125,8 @@ public class NewApriltagCodeTest extends LinearOpMode {
                 IMU_Telemetry();
             }
             MoveForwardEncoder((int)myAprilTagPoseX);
-            while (Z_Rotation < 90) {
+            rotationStatic = Z_Rotation + 75;
+            while (Z_Rotation < (Z_Rotation + 75)) {
                 FrontRight.setPower(0.3);
                 FrontLeft.setPower(-0.3);
                 RearRight.setPower(0.3);
@@ -165,6 +170,10 @@ public class NewApriltagCodeTest extends LinearOpMode {
         FrontRight.setTargetPosition(tickstoDestination);
         RearLeft.setTargetPosition(tickstoDestination);
         RearRight.setTargetPosition(tickstoDestination);
+        FrontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        FrontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        RearLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        RearRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         FrontLeft.setPower(0.5);
         FrontRight.setPower(0.5);
         RearLeft.setPower(0.5);
@@ -187,10 +196,6 @@ public class NewApriltagCodeTest extends LinearOpMode {
         FrontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         RearLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         RearRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        FrontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        FrontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        RearLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        RearRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
     private void DisableEncoders() {
