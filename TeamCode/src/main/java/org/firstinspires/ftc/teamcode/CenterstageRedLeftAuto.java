@@ -442,6 +442,10 @@ public class CenterstageRedLeftAuto extends LinearOpMode {
         FrontRight.setTargetPosition(tickstoDestination);
         RearLeft.setTargetPosition(tickstoDestination);
         RearRight.setTargetPosition(tickstoDestination);
+        FrontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        FrontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        RearLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        RearRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         FrontLeft.setPower(0.5);
         FrontRight.setPower(0.5);
         RearLeft.setPower(0.5);
@@ -465,6 +469,10 @@ public class CenterstageRedLeftAuto extends LinearOpMode {
         FrontRight.setTargetPosition(tickstoDestination);
         RearLeft.setTargetPosition(tickstoDestination);
         RearRight.setTargetPosition(tickstoDestination);
+        FrontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        FrontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        RearLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        RearRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         FrontLeft.setPower(-0.5);
         FrontRight.setPower(-0.5);
         RearLeft.setPower(-0.5);
@@ -657,10 +665,6 @@ public class CenterstageRedLeftAuto extends LinearOpMode {
         FrontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         RearLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         RearRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        FrontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        FrontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        RearLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        RearRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
     /**

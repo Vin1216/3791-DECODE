@@ -105,7 +105,7 @@ public class NewApriltagCodeTest extends LinearOpMode {
                 RearLeft.setPower(-0.3);
                 IMU_Telemetry();
             }
-            MoveForwardEncoder((int)myAprilTagPoseX);
+            MoveForwardEncoder((int)Math.abs(myAprilTagPoseX * 1.4));
             rotationStatic = Z_Rotation - 75;
             while (Z_Rotation > rotationStatic) {
                 FrontRight.setPower(-0.3);
@@ -117,16 +117,16 @@ public class NewApriltagCodeTest extends LinearOpMode {
         }
         else {
             rotationStatic = Z_Rotation - 75;
-            while (Z_Rotation > (Z_Rotation - 75)) {
+            while (Z_Rotation > rotationStatic) {
                 FrontRight.setPower(-0.3);
                 FrontLeft.setPower(0.3);
                 RearRight.setPower(-0.3);
                 RearLeft.setPower(0.3);
                 IMU_Telemetry();
             }
-            MoveForwardEncoder((int)myAprilTagPoseX);
+            MoveForwardEncoder((int)Math.abs(myAprilTagPoseX * 1.4));
             rotationStatic = Z_Rotation + 75;
-            while (Z_Rotation < (Z_Rotation + 75)) {
+            while (Z_Rotation < rotationStatic) {
                 FrontRight.setPower(0.3);
                 FrontLeft.setPower(-0.3);
                 RearRight.setPower(0.3);
@@ -160,7 +160,7 @@ public class NewApriltagCodeTest extends LinearOpMode {
         RearRight.setPower(0);
         RearLeft.setPower(0);
         DetectAprilTags();
-        MoveForwardEncoder((int)myAprilTagPoseRange - 2);
+        MoveForwardEncoder((int)myAprilTagPoseRange - 3);
     }
 
     private void MoveForwardEncoder(int Distance) {
