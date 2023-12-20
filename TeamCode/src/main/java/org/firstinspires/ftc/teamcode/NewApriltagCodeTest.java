@@ -96,7 +96,7 @@ public class NewApriltagCodeTest extends LinearOpMode {
     private void MoveTowardAprilTag() {
         double rotationStatic;
         DetectAprilTags();
-        if (myAprilTagPoseX < 0) {
+        if (myAprilTagPoseX < -0.2) {
             rotationStatic = Z_Rotation + 75;
             while (Z_Rotation < rotationStatic) {
                 FrontRight.setPower(0.3);
@@ -115,7 +115,7 @@ public class NewApriltagCodeTest extends LinearOpMode {
                 IMU_Telemetry();
             }
         }
-        else {
+        else if (myAprilTagPoseX > 0.2) {
             rotationStatic = Z_Rotation - 75;
             while (Z_Rotation > rotationStatic) {
                 FrontRight.setPower(-0.3);
