@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 public class RampUpEncoderTest extends LinearOpMode {
     private DcMotor FrontLeft;
@@ -18,6 +19,7 @@ public class RampUpEncoderTest extends LinearOpMode {
     double wheelCircumference;
     double ticksPerInch;
     int tickstoDestination;
+    ElapsedTime myTimer;
 
     public void runOpMode() {
         FrontLeft = hardwareMap.get(DcMotor.class, "FrontLeft");
@@ -31,6 +33,7 @@ public class RampUpEncoderTest extends LinearOpMode {
         ticksperRevolution = 480;
         wheelCircumference = 12.56;
         ticksPerInch = ticksperRevolution / wheelCircumference;
+        myTimer = new ElapsedTime();
     }
     private void MoveForwardEncoder(int Distance) {
         ResetEncoder();
@@ -68,6 +71,10 @@ public class RampUpEncoderTest extends LinearOpMode {
             FrontRight.setPower(power);
             RearLeft.setPower(power);
             RearRight.setPower(power);
+            myTimer.reset();
+            while (myTimer.milliseconds() <= CYCLE_MS) {
+                telemetry.update();
+            }
         }
         FrontLeft.setPower(0);
         FrontRight.setPower(0);
