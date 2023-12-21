@@ -34,6 +34,10 @@ public class RampUpEncoderTest extends LinearOpMode {
         wheelCircumference = 12.56;
         ticksPerInch = ticksperRevolution / wheelCircumference;
         myTimer = new ElapsedTime();
+        waitForStart();
+        if(opModeIsActive()) {
+            MoveForwardEncoder(44);
+        }
     }
     private void MoveForwardEncoder(int Distance) {
         ResetEncoder();
