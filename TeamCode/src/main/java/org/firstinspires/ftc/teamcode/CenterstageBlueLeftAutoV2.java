@@ -23,7 +23,7 @@ import org.firstinspires.ftc.vision.tfod.TfodProcessor;
 
 import java.util.List;
 
-@Autonomous(name = "CenterstageBlueLeftAuto (Blocks to Java)")
+@Autonomous(name = "CenterstageBlueLeftAutoV2")
 public class CenterstageBlueLeftAutoV2 extends LinearOpMode {
 
   private DcMotor FrontLeft;
