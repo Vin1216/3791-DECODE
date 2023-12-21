@@ -1,9 +1,10 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
+@Autonomous
 public class RampUpEncoderTest extends LinearOpMode {
     private DcMotor FrontLeft;
     private DcMotor FrontRight;
@@ -61,6 +62,9 @@ public class RampUpEncoderTest extends LinearOpMode {
                 if (power >= MAX_FWD ) {
                     power = MAX_FWD;
                     rampUp = !rampUp;   // Switch ramp direction
+                }
+                else if (FrontRight.getCurrentPosition() >= (tickstoDestination * 0.75)) {
+                    rampUp = !rampUp;
                 }
             }
             else {
