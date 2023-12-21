@@ -38,7 +38,7 @@ public class CenterstageRedRightAuto extends LinearOpMode {
 
   int reqID;
   List<AprilTagDetection> myAprilTagDetections;
-  double myAprilTagPoseX;
+  Double myAprilTagPoseX;
   double myAprilTagPoseBearing;
   int tickstoDestination;
   double myAprilTagPoseRange;
@@ -50,7 +50,7 @@ public class CenterstageRedRightAuto extends LinearOpMode {
   TfodProcessor myTfodProcessor;
   AprilTagProcessor myAprilTagProcessor;
   double ticksPerInch;
-  int myAprilTagIdCode;
+  Integer myAprilTagIdCode;
 
   /**
    * Describe this function...
@@ -320,7 +320,7 @@ public class CenterstageRedRightAuto extends LinearOpMode {
    */
   private void DetectSpike() {
     List<Recognition> myTfodRecognitions;
-    float SpikeX;
+    Float SpikeX = null;
     Recognition myTfodRecognition;
     float SpikeY;
 
@@ -441,6 +441,10 @@ public class CenterstageRedRightAuto extends LinearOpMode {
     FrontRight.setTargetPosition(tickstoDestination);
     RearLeft.setTargetPosition(tickstoDestination);
     RearRight.setTargetPosition(tickstoDestination);
+    FrontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    FrontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    RearLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    RearRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     FrontLeft.setPower(0.5);
     FrontRight.setPower(0.5);
     RearLeft.setPower(0.5);
@@ -464,6 +468,10 @@ public class CenterstageRedRightAuto extends LinearOpMode {
     FrontRight.setTargetPosition(tickstoDestination);
     RearLeft.setTargetPosition(tickstoDestination);
     RearRight.setTargetPosition(tickstoDestination);
+    FrontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    FrontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    RearLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    RearRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     FrontLeft.setPower(-0.5);
     FrontRight.setPower(-0.5);
     RearLeft.setPower(-0.5);
@@ -539,7 +547,7 @@ public class CenterstageRedRightAuto extends LinearOpMode {
               RearLeft.setPower(0.15);
               RearRight.setPower(-0.15);
               DetectAprilTags(reqID);
-              telemetry.addLine(myAprilTagIdCode);
+              telemetry.addLine(Integer.toString(myAprilTagIdCode));
               telemetry.update();
             } else {
               FrontLeft.setPower(-0.15);
@@ -547,7 +555,7 @@ public class CenterstageRedRightAuto extends LinearOpMode {
               RearLeft.setPower(-0.15);
               RearRight.setPower(0.15);
               DetectAprilTags(reqID);
-              telemetry.addLine(myAprilTagIdCode);
+              telemetry.addLine(Integer.toString(myAprilTagIdCode));
               telemetry.update();
             }
           }
@@ -597,10 +605,6 @@ public class CenterstageRedRightAuto extends LinearOpMode {
     FrontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
     RearLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
     RearRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-    FrontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-    FrontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-    RearLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-    RearRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
   }
 
   /**

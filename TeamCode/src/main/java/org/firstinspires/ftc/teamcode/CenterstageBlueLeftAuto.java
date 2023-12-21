@@ -39,7 +39,7 @@ public class CenterstageBlueLeftAuto extends LinearOpMode {
 
   int reqID;
   List<AprilTagDetection> myAprilTagDetections;
-  double myAprilTagPoseX;
+  Double myAprilTagPoseX;
   double myAprilTagPoseBearing;
   int tickstoDestination;
   double myAprilTagPoseRange;
@@ -51,7 +51,7 @@ public class CenterstageBlueLeftAuto extends LinearOpMode {
   TfodProcessor myTfodProcessor;
   AprilTagProcessor myAprilTagProcessor;
   double ticksPerInch;
-  int myAprilTagIdCode;
+  Integer myAprilTagIdCode;
 
   /**
    * Describe this function...
@@ -319,7 +319,7 @@ public class CenterstageBlueLeftAuto extends LinearOpMode {
    */
   private void DetectSpike() {
     List<Recognition> myTfodRecognitions;
-    float SpikeX;
+    Float SpikeX = null;
     Recognition myTfodRecognition;
     float SpikeY;
 
@@ -440,11 +440,15 @@ public class CenterstageBlueLeftAuto extends LinearOpMode {
     FrontRight.setTargetPosition(tickstoDestination);
     RearLeft.setTargetPosition(tickstoDestination);
     RearRight.setTargetPosition(tickstoDestination);
+    FrontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    FrontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    RearLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    RearRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     FrontLeft.setPower(0.5);
     FrontRight.setPower(0.5);
     RearLeft.setPower(0.5);
     RearRight.setPower(0.5);
-    while (!!FrontRight.isBusy()) {
+    while (FrontRight.isBusy()) {
     }
     FrontLeft.setPower(0);
     FrontRight.setPower(0);
@@ -463,11 +467,15 @@ public class CenterstageBlueLeftAuto extends LinearOpMode {
     FrontRight.setTargetPosition(tickstoDestination);
     RearLeft.setTargetPosition(tickstoDestination);
     RearRight.setTargetPosition(tickstoDestination);
+    FrontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    FrontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    RearLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    RearRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     FrontLeft.setPower(-0.5);
     FrontRight.setPower(-0.5);
     RearLeft.setPower(-0.5);
     RearRight.setPower(-0.5);
-    while (!!RearLeft.isBusy()) {
+    while (RearLeft.isBusy()) {
     }
     FrontLeft.setPower(0);
     FrontRight.setPower(0);
@@ -552,7 +560,7 @@ public class CenterstageBlueLeftAuto extends LinearOpMode {
           FrontRight.setPower(0);
           RearLeft.setPower(0);
           RearRight.setPower(0);
-          telemetry.addLine(myAprilTagIdCode);
+          telemetry.addLine(Integer.toString(myAprilTagIdCode));
           State = "ScoreOnApriltag";
         }
         if (State.equals("ScoreOnApriltag")) {
@@ -586,7 +594,7 @@ public class CenterstageBlueLeftAuto extends LinearOpMode {
    */
   private void RaiseLift(
       // TODO: Enter the type for argument named LiftHeight
-      UNKNOWN_TYPE LiftHeight) {
+      int LiftHeight) {
     myTimer.reset();
     while (myTimer.seconds() <= LiftHeight) {
       LiftMotor2.setPower(0.5);
@@ -623,10 +631,6 @@ public class CenterstageBlueLeftAuto extends LinearOpMode {
     FrontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
     RearLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
     RearRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-    FrontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-    FrontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-    RearLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-    RearRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
   }
 
   /**

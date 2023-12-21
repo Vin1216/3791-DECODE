@@ -321,7 +321,7 @@ public class CenterstageRedLeftAuto extends LinearOpMode {
      */
     private void DetectSpike() {
         List<Recognition> myTfodRecognitions;
-        float SpikeX = -1;
+        Float SpikeX = null;
         Recognition myTfodRecognition;
         float SpikeY;
 
@@ -345,7 +345,7 @@ public class CenterstageRedLeftAuto extends LinearOpMode {
                 telemetry.update();
             }
         }
-        if (SpikeX < 0) {
+        if (SpikeX == null) {
             State = "SpikeLeft";
             reqID = 4;
             telemetry.addLine("SpikeLeft");
