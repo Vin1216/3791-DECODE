@@ -10,7 +10,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.JavaUtil;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
@@ -66,12 +65,10 @@ public class CenterstageBlueLeftAutoV2 extends LinearOpMode {
      */
     private void IMU_Telemetry() {
         Orientation angles;
-        Acceleration gravity;
 
         // Get absolute orientation
         // Get acceleration due to force of gravity.
         angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-        gravity = imu.getGravity();
         Z_Rotation = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
         // Display orientation info.
         telemetry.addData("rot about Z", angles.firstAngle);
@@ -88,10 +85,9 @@ public class CenterstageBlueLeftAutoV2 extends LinearOpMode {
 
         // Create new IMU Parameters object.
         imuParameters = new BNO055IMU.Parameters();
+        imu.write8(BNO055IMU.Register.OPR_MODE, 0b00000011);
         // Use degrees as angle unit.
         imuParameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
-        // Express acceleration as m/s^2.
-        imuParameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
         // Disable logging.
         imuParameters.loggingEnabled = false;
         // Initialize IMU.
@@ -129,15 +125,15 @@ public class CenterstageBlueLeftAutoV2 extends LinearOpMode {
      * Describe this function...
      */
     private void SpikeMiddleEncoderMinimal() {
-        MoveForwardEncoder(32);
-        MoveBackwardEncoder(4);
+        MoveForwardEncoder(34);
+        MoveBackwardEncoder(3);
         FrontLeft.setPower(0);
         FrontRight.setPower(0);
         RearLeft.setPower(0);
         RearRight.setPower(0);
         DropPixel();
-        MoveBackwardEncoder(11);
-        while (opModeIsActive() && Z_Rotation <= 80) {
+        MoveBackwardEncoder(5);
+        while (opModeIsActive() && Z_Rotation <= 90) {
             FrontLeft.setPower(-0.25);
             FrontRight.setPower(0.25);
             RearLeft.setPower(-0.25);
@@ -332,11 +328,13 @@ public class CenterstageBlueLeftAutoV2 extends LinearOpMode {
                     DetectAprilTags();
                 }
             } else {
-                FrontRight.setPower(0.2);
-                FrontLeft.setPower(0.15);
-                RearRight.setPower(0.2);
-                RearLeft.setPower(0.15);
-                DetectAprilTags();
+                while (myAprilTagPoseYaw > 0) {
+                    FrontRight.setPower(0.2);
+                    FrontLeft.setPower(0.15);
+                    RearRight.setPower(0.2);
+                    RearLeft.setPower(0.15);
+                    DetectAprilTags();
+                }
             }
             FrontRight.setPower(0);
             FrontLeft.setPower(0);
@@ -365,6 +363,7 @@ public class CenterstageBlueLeftAutoV2 extends LinearOpMode {
         FrontRight.setPower(0.1);
         RearLeft.setPower(0.1);
         RearRight.setPower(0.1);
+        power = 0.1;
         while (FrontRight.isBusy()) {
             if (rampUp) {
                 // Keep stepping up until we hit the max value.
@@ -415,6 +414,7 @@ public class CenterstageBlueLeftAutoV2 extends LinearOpMode {
         FrontRight.setPower(-0.1);
         RearLeft.setPower(-0.1);
         RearRight.setPower(-0.1);
+        power = 0.1;
         while (RearLeft.isBusy()) {
             if (rampUp) {
                 // Keep stepping up until we hit the max value.

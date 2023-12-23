@@ -63,9 +63,6 @@ public class RampUpEncoderTest extends LinearOpMode {
                     power = MAX_FWD;
                     rampUp = !rampUp;   // Switch ramp direction
                 }
-                else if (FrontRight.getCurrentPosition() >= (tickstoDestination * 0.75)) {
-                    rampUp = !rampUp;
-                }
             }
             else {
                 // Keep stepping down until we hit the min value.
