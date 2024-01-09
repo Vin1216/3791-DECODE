@@ -462,7 +462,7 @@ public class CenterstageBlueLeftAutoV2 extends LinearOpMode {
             RearLeft.setPower(0);
 
             DetectAprilTags();
-            MoveForwardEncoder((int) myAprilTagPoseRange - 8);
+            MoveForwardEncoder((int) myAprilTagPoseRange - 7);
         }
     }
 
