@@ -38,7 +38,7 @@ public class CenterstageBlueLeftAutoV2 extends LinearOpMode {
     private Servo scoop;
     private Servo ClawServo;
 
-    int reqID;
+    Integer reqID;
     List<AprilTagDetection> myAprilTagDetections;
     Double myAprilTagPoseX;
     double myAprilTagPoseBearing;
@@ -91,7 +91,7 @@ public class CenterstageBlueLeftAutoV2 extends LinearOpMode {
         Init_IMU();
         IMU_Telemetry();
         Init_VisionPortal();
-        ticksperRevolution = 480;
+        ticksperRevolution = 550;
         wheelCircumference = 12.56;
         ticksPerInch = ticksperRevolution / wheelCircumference;
         // A single square is about 22 inches.
@@ -176,6 +176,10 @@ public class CenterstageBlueLeftAutoV2 extends LinearOpMode {
                     MoveTowardAprilTag(reqID);
 //          StrafeLeft(0.3 + 0.15 / reqID); These are no longer needed, but if issues
 //          MoveForwardEncoder(3);          arise, these may need to be used.
+                    FrontLeft.setPower(0);
+                    FrontRight.setPower(0);
+                    RearLeft.setPower(0);
+                    RearRight.setPower(0);
                     DropArm.setPosition(1);
                     myTimer.reset();
                     while (myTimer.seconds() <= 1) {
@@ -189,8 +193,8 @@ public class CenterstageBlueLeftAutoV2 extends LinearOpMode {
                 if (State.equals("Park")) {
                     MoveBackwardEncoder(6);
                     DropArm.setPosition(-1);
-                    StrafeLeft(1.5 + 0.35 * reqID);
-                    MoveForwardEncoder(14);
+                    StrafeLeft(1 + 0.35 * reqID);
+                    MoveForwardEncoder(18);
                     PushServo.setPosition(0);
                     State = "AAAAAAAAAAAA";
                 }
@@ -202,7 +206,7 @@ public class CenterstageBlueLeftAutoV2 extends LinearOpMode {
      * Describe this function...
      */
     private void SpikeMiddleEncoderMinimal() {
-        MoveForwardEncoder(34);
+        MoveForwardEncoder(30);
         MoveBackwardEncoder(3);
         FrontLeft.setPower(0);
         FrontRight.setPower(0);
@@ -229,7 +233,7 @@ public class CenterstageBlueLeftAutoV2 extends LinearOpMode {
      */
     private void SpikeLeftEncoderMinimal() {
         StrafeLeft(0.6);
-        MoveForwardEncoder(33);
+        MoveForwardEncoder(23);
         MoveBackwardEncoder(6);
         FrontLeft.setPower(0);
         FrontRight.setPower(0);
@@ -261,7 +265,7 @@ public class CenterstageBlueLeftAutoV2 extends LinearOpMode {
      * Describe this function...
      */
     private void SpikeRightEncoderMinimal() {
-        MoveForwardEncoder(28);
+        MoveForwardEncoder(26);
         while (opModeIsActive() && Z_Rotation >= -90) {
             FrontLeft.setPower(0.25);
             FrontRight.setPower(-0.25);
@@ -269,8 +273,8 @@ public class CenterstageBlueLeftAutoV2 extends LinearOpMode {
             RearRight.setPower(-0.25);
             IMU_Telemetry();
         }
-        MoveForwardEncoder(6);
-        MoveBackwardEncoder(3);
+        MoveForwardEncoder(8);
+        MoveBackwardEncoder(4);
         FrontLeft.setPower(0);
         FrontRight.setPower(0);
         RearLeft.setPower(0);
@@ -457,29 +461,8 @@ public class CenterstageBlueLeftAutoV2 extends LinearOpMode {
             RearRight.setPower(0);
             RearLeft.setPower(0);
 
-            if (myAprilTagPoseYaw < 0) {
-                while (myAprilTagPoseYaw < 0) {
-                    FrontRight.setPower(0.15);
-                    FrontLeft.setPower(0.2);
-                    RearRight.setPower(0.15);
-                    RearLeft.setPower(0.2);
-                    DetectAprilTags();
-                }
-            } else {
-                while (myAprilTagPoseYaw > 0) {
-                    FrontRight.setPower(0.2);
-                    FrontLeft.setPower(0.15);
-                    RearRight.setPower(0.2);
-                    RearLeft.setPower(0.15);
-                    DetectAprilTags();
-                }
-            }
-            FrontRight.setPower(0);
-            FrontLeft.setPower(0);
-            RearRight.setPower(0);
-            RearLeft.setPower(0);
             DetectAprilTags();
-            MoveForwardEncoder((int) myAprilTagPoseRange - 3);
+            MoveForwardEncoder((int) myAprilTagPoseRange - 12);
         }
     }
 
