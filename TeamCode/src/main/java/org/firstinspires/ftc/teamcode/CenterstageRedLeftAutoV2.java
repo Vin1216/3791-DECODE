@@ -179,7 +179,7 @@ public class CenterstageRedLeftAutoV2 extends LinearOpMode {
                     myTimer.reset();
                     while (myTimer.seconds() <= 1) {
                     }
-                    DropArm.setPosition(0.95);
+                    DropArm.setPosition(DropArm.getPosition() - 0.05);
                     myTimer.reset();
                     while (myTimer.seconds() <= 1) {
                     }

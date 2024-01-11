@@ -177,7 +177,7 @@ public class CenterstageBlueRightAutoV2 extends LinearOpMode {
           myTimer.reset();
           while (myTimer.seconds() <= 1) {
           }
-          DropArm.setPosition(0.95);
+          DropArm.setPosition(DropArm.getPosition() - 0.05);
           myTimer.reset();
           while (myTimer.seconds() <= 1) {
           }
@@ -186,8 +186,8 @@ public class CenterstageBlueRightAutoV2 extends LinearOpMode {
         if (State.equals("Park")) {
           MoveBackwardEncoder(6);
           DropArm.setPosition(-1);
-          StrafeRight(1.35 + 0.3 / reqID);
-          MoveForwardEncoder(18);
+          StrafeRight(1.4 + 0.3 / reqID);
+          MoveForwardEncoder(20);
           PushServo.setPosition(0);
           State = "AAAAAAAAAAAA";
         }
@@ -254,22 +254,22 @@ public class CenterstageBlueRightAutoV2 extends LinearOpMode {
    */
   private void SpikeRightEncoderMinimal() {
     StrafeRight(0.55);
-    MoveForwardEncoder(23);
+    MoveForwardEncoder(25);
     MoveBackwardEncoder(6);
     FrontLeft.setPower(0);
     FrontRight.setPower(0);
     RearLeft.setPower(0);
     RearRight.setPower(0);
     DropPixel();
-    MoveBackwardEncoder(6);
+    MoveBackwardEncoder(8);
     FrontLeft.setPower(0);
     FrontRight.setPower(0);
     RearLeft.setPower(0);
     RearRight.setPower(0);
-    StrafeRight(0.7);
-    MoveForwardEncoder(44);
+    StrafeRight(0.65);
+    MoveForwardEncoder(42);
     IMU_Telemetry();
-    while (opModeIsActive() && Z_Rotation <= 90) {
+    while (opModeIsActive() && Z_Rotation <= 85) {
       FrontLeft.setPower(-0.25);
       FrontRight.setPower(0.25);
       RearLeft.setPower(-0.25);
@@ -281,7 +281,7 @@ public class CenterstageBlueRightAutoV2 extends LinearOpMode {
     RearLeft.setPower(0);
     RearRight.setPower(0);
     MoveForwardEncoder(88);
-    StrafeLeft(1.25);
+    StrafeLeft(1.5);
   }
 
   /**
