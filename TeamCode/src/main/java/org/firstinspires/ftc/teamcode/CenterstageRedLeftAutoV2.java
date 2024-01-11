@@ -38,7 +38,7 @@ public class CenterstageRedLeftAutoV2 extends LinearOpMode {
     private Servo scoop;
     private Servo ClawServo;
 
-    int reqID;
+    Integer reqID;
     List<AprilTagDetection> myAprilTagDetections;
     Double myAprilTagPoseX;
     String State;
@@ -201,14 +201,14 @@ public class CenterstageRedLeftAutoV2 extends LinearOpMode {
      * Describe this function...
      */
     private void SpikeMiddleEncoderMinimal() {
-        MoveForwardEncoder(33);
-        MoveBackwardEncoder(4);
+        MoveForwardEncoder(30);
+        MoveBackwardEncoder(3);
         FrontLeft.setPower(0);
         FrontRight.setPower(0);
         RearLeft.setPower(0);
         RearRight.setPower(0);
         DropPixel();
-        MoveBackwardEncoder(11);
+        MoveBackwardEncoder(5);
         StrafeLeft(0.75);
         MoveForwardEncoder(40);
         while (opModeIsActive() && Z_Rotation >= -90) {
@@ -230,8 +230,8 @@ public class CenterstageRedLeftAutoV2 extends LinearOpMode {
      * Describe this function...
      */
     private void SpikeLeftEncoderMinimal() {
-        StrafeLeft(0.65);
-        MoveForwardEncoder(33);
+        StrafeLeft(0.6);
+        MoveForwardEncoder(23);
         MoveBackwardEncoder(6);
         FrontLeft.setPower(0);
         FrontRight.setPower(0);
@@ -244,7 +244,7 @@ public class CenterstageRedLeftAutoV2 extends LinearOpMode {
         RearLeft.setPower(0);
         RearRight.setPower(0);
         StrafeLeft(0.7);
-        MoveForwardEncoder(30);
+        MoveForwardEncoder(44);
         IMU_Telemetry();
         while (opModeIsActive() && Z_Rotation >= -90) {
             FrontLeft.setPower(0.25);
@@ -258,7 +258,7 @@ public class CenterstageRedLeftAutoV2 extends LinearOpMode {
         RearLeft.setPower(0);
         RearRight.setPower(0);
         MoveForwardEncoder(88);
-        StrafeRight(1.5);
+        StrafeRight(1.25);
     }
 
     /**
@@ -273,7 +273,7 @@ public class CenterstageRedLeftAutoV2 extends LinearOpMode {
             RearRight.setPower(-0.25);
             IMU_Telemetry();
         }
-        MoveForwardEncoder(6);
+        MoveForwardEncoder(8);
         MoveBackwardEncoder(4);
         FrontLeft.setPower(0);
         FrontRight.setPower(0);
@@ -412,74 +412,109 @@ public class CenterstageRedLeftAutoV2 extends LinearOpMode {
     private void MoveTowardAprilTag(int reqID) {
         if (reqID < 0) {
             return;
-        }
-        else {
-            double rotationStatic;
+        } else {
             DetectAprilTags();
             if (myAprilTagPoseX < -0.2) {
-                rotationStatic = Z_Rotation + 90;
-                while (Z_Rotation < rotationStatic) {
-                    FrontRight.setPower(0.3);
-                    FrontLeft.setPower(-0.3);
-                    RearRight.setPower(0.3);
-                    RearLeft.setPower(-0.3);
-                    IMU_Telemetry();
-                }
-                MoveForwardEncoder((int) Math.abs(myAprilTagPoseX * 1.4));
-                rotationStatic = Z_Rotation - 90;
-                while (Z_Rotation > rotationStatic) {
-                    FrontRight.setPower(-0.3);
-                    FrontLeft.setPower(0.3);
-                    RearRight.setPower(-0.3);
-                    RearLeft.setPower(0.3);
-                    IMU_Telemetry();
-                }
+                StrafeLeftEncoder((int) Math.abs(myAprilTagPoseX * 1.4));
             } else if (myAprilTagPoseX > 0.2) {
-                rotationStatic = Z_Rotation - 90;
-                while (Z_Rotation > rotationStatic) {
-                    FrontRight.setPower(-0.3);
-                    FrontLeft.setPower(0.3);
-                    RearRight.setPower(-0.3);
-                    RearLeft.setPower(0.3);
-                    IMU_Telemetry();
-                }
-                MoveForwardEncoder((int) Math.abs(myAprilTagPoseX * 1.4));
-                rotationStatic = Z_Rotation + 90;
-                while (Z_Rotation < rotationStatic) {
-                    FrontRight.setPower(0.3);
-                    FrontLeft.setPower(-0.3);
-                    RearRight.setPower(0.3);
-                    RearLeft.setPower(-0.3);
-                    IMU_Telemetry();
-                }
+                StrafeRightEncoder((int) Math.abs(myAprilTagPoseX * 1.4));
             }
             FrontRight.setPower(0);
             FrontLeft.setPower(0);
             RearRight.setPower(0);
             RearLeft.setPower(0);
 
-            if (myAprilTagPoseYaw < 0) {
-                while (myAprilTagPoseYaw < 0) {
-                    FrontRight.setPower(0.15);
-                    FrontLeft.setPower(0.2);
-                    RearRight.setPower(0.15);
-                    RearLeft.setPower(0.2);
-                    DetectAprilTags();
+            DetectAprilTags();
+            MoveForwardEncoder((int) Math.round(myAprilTagPoseRange - 9.5));
+        }
+    }
+
+    private void StrafeLeftEncoder(int Distance) {
+        ResetEncoder();
+        tickstoDestination = (int) (Distance * ticksPerInch * 1.1);
+        FrontLeft.setTargetPosition(-tickstoDestination);
+        FrontRight.setTargetPosition(tickstoDestination);
+        RearLeft.setTargetPosition(tickstoDestination);
+        RearRight.setTargetPosition(-tickstoDestination);
+        FrontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        FrontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        RearLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        RearRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        power = 0.1;
+        while (FrontRight.isBusy()) {
+            if (rampUp) {
+                // Keep stepping up until we hit the max value.
+                power += INCREMENT;
+                if (power >= MAX_FWD) {
+                    power = MAX_FWD;
+                    rampUp = !rampUp;   // Switch ramp direction
                 }
             } else {
-                FrontRight.setPower(0.2);
-                FrontLeft.setPower(0.15);
-                RearRight.setPower(0.2);
-                RearLeft.setPower(0.15);
-                DetectAprilTags();
+                // Keep stepping down until we hit the min value.
+                power -= INCREMENT;
+                if (power <= MAX_REV) {
+                    power = MAX_REV;
+                    rampUp = !rampUp;  // Switch ramp direction
+                }
             }
-            FrontRight.setPower(0);
-            FrontLeft.setPower(0);
-            RearRight.setPower(0);
-            RearLeft.setPower(0);
-            DetectAprilTags();
-            MoveForwardEncoder((int) myAprilTagPoseRange - 3);
+            FrontLeft.setPower(-power);
+            FrontRight.setPower(power);
+            RearLeft.setPower(power);
+            RearRight.setPower(-power);
+            myTimer.reset();
+            while (myTimer.milliseconds() <= CYCLE_MS) {
+                telemetry.update();
+            }
         }
+        FrontLeft.setPower(0);
+        FrontRight.setPower(0);
+        RearLeft.setPower(0);
+        RearRight.setPower(0);
+        DisableEncoders();
+    }
+
+    private void StrafeRightEncoder(int Distance) {
+        ResetEncoder();
+        tickstoDestination = (int) (Distance * ticksPerInch * 1.1);
+        FrontLeft.setTargetPosition(tickstoDestination);
+        FrontRight.setTargetPosition(-tickstoDestination);
+        RearLeft.setTargetPosition(-tickstoDestination);
+        RearRight.setTargetPosition(tickstoDestination);
+        FrontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        FrontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        RearLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        RearRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        power = 0.1;
+        while (FrontRight.isBusy()) {
+            if (rampUp) {
+                // Keep stepping up until we hit the max value.
+                power += INCREMENT;
+                if (power >= MAX_FWD) {
+                    power = MAX_FWD;
+                    rampUp = !rampUp;   // Switch ramp direction
+                }
+            } else {
+                // Keep stepping down until we hit the min value.
+                power -= INCREMENT;
+                if (power <= MAX_REV) {
+                    power = MAX_REV;
+                    rampUp = !rampUp;  // Switch ramp direction
+                }
+            }
+            FrontLeft.setPower(power);
+            FrontRight.setPower(-power);
+            RearLeft.setPower(-power);
+            RearRight.setPower(power);
+            myTimer.reset();
+            while (myTimer.milliseconds() <= CYCLE_MS) {
+                telemetry.update();
+            }
+        }
+        FrontLeft.setPower(0);
+        FrontRight.setPower(0);
+        RearLeft.setPower(0);
+        RearRight.setPower(0);
+        DisableEncoders();
     }
 
     /**
