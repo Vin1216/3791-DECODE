@@ -21,6 +21,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import org.firstinspires.ftc.vision.tfod.TfodProcessor;
 
 import java.util.List;
+import java.util.Objects;
 
 @Autonomous(name = "CenterstageBlueLeftAutoV2")
 public class CenterstageBlueLeftAutoV2 extends LinearOpMode {
@@ -124,21 +125,21 @@ public class CenterstageBlueLeftAutoV2 extends LinearOpMode {
                 if (State.equals("FindBackboard")) {
                     DetectAprilTags();
                     myTimer.reset();
-                    while (opModeIsActive() && myAprilTagIdCode != reqID) {
+                    while (opModeIsActive() && !Objects.equals(myAprilTagIdCode, reqID)) {
                         if (myAprilTagIdCode == null) {
-                            FrontLeft.setPower(0.1);
-                            FrontRight.setPower(-0.1);
-                            RearLeft.setPower(0.1);
-                            RearRight.setPower(-0.1);
+                            FrontLeft.setPower(-0.15);
+                            FrontRight.setPower(0.15);
+                            RearLeft.setPower(-0.15);
+                            RearRight.setPower(0.15);
                             DetectAprilTags();
                         } else {
-                            FrontLeft.setPower(-0.1);
-                            FrontRight.setPower(0.1);
-                            RearLeft.setPower(-0.1);
-                            RearRight.setPower(0.1);
+                            FrontLeft.setPower(0.15);
+                            FrontRight.setPower(-0.15);
+                            RearLeft.setPower(0.15);
+                            RearRight.setPower(-0.15);
                             DetectAprilTags();
                         }
-                        if (myTimer.seconds() >= 6) {
+                        if (myTimer.seconds() >= 4) {
                             IMU_Telemetry();
                             if (Z_Rotation <= -90) {
                                 while (Z_Rotation <= -90) {
@@ -186,9 +187,16 @@ public class CenterstageBlueLeftAutoV2 extends LinearOpMode {
                     RearLeft.setPower(0);
                     RearRight.setPower(0);
                     DropArm.setPosition(1);
-                    myTimer.reset();
-                    while (myTimer.seconds() <= 1) {
+                    while (DropArm.getPosition() < 1) {
+                        FrontLeft.setPower(-0.15);
+                        FrontRight.setPower(-0.15);
+                        RearLeft.setPower(-0.15);
+                        RearRight.setPower(-0.15);
                     }
+                    FrontLeft.setPower(0);
+                    FrontRight.setPower(0);
+                    RearLeft.setPower(0);
+                    RearRight.setPower(0);
                     DropArm.setPosition(DropArm.getPosition() - 0.05);
                     myTimer.reset();
                     while (myTimer.seconds() <= 1) {
@@ -433,7 +441,7 @@ public class CenterstageBlueLeftAutoV2 extends LinearOpMode {
             RearLeft.setPower(0);
 
             DetectAprilTags();
-            MoveForwardEncoder((int) Math.round(myAprilTagPoseRange - 9.5));
+            MoveForwardEncoder((int) Math.round(myAprilTagPoseRange - 8.5));
         }
     }
 
