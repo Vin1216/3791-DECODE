@@ -162,6 +162,7 @@ public class CenterstageRedLeftAutoV2 extends LinearOpMode {
                                 RearRight.setPower(0);
                             }
                             MoveForwardEncoder(11);
+                            reqID = -1;
                             break;
                         }
                     }
