@@ -141,8 +141,8 @@ public class CenterstageBlueLeftAutoV2 extends LinearOpMode {
                         }
                         if (myTimer.seconds() >= 4) {
                             IMU_Telemetry();
-                            if (Z_Rotation <= -90) {
-                                while (Z_Rotation <= -90) {
+                            if (Z_Rotation <= -85) {
+                                while (Z_Rotation <= -85) {
                                     FrontLeft.setPower(-0.15);
                                     FrontRight.setPower(0.15);
                                     RearLeft.setPower(-0.15);
@@ -154,7 +154,7 @@ public class CenterstageBlueLeftAutoV2 extends LinearOpMode {
                                 RearLeft.setPower(0);
                                 RearRight.setPower(0);
                             } else {
-                                while (Z_Rotation >= -90) {
+                                while (Z_Rotation >= -85) {
                                     FrontLeft.setPower(0.15);
                                     FrontRight.setPower(-0.15);
                                     RearLeft.setPower(0.15);
@@ -187,16 +187,12 @@ public class CenterstageBlueLeftAutoV2 extends LinearOpMode {
                     RearLeft.setPower(0);
                     RearRight.setPower(0);
                     DropArm.setPosition(1);
-                    while (DropArm.getPosition() < 1) {
-                        FrontLeft.setPower(-0.15);
-                        FrontRight.setPower(-0.15);
-                        RearLeft.setPower(-0.15);
-                        RearRight.setPower(-0.15);
+                    while (DropArm.getPosition() < 0.5) {
+                        MoveBackwardEncoder(2);
                     }
-                    FrontLeft.setPower(0);
-                    FrontRight.setPower(0);
-                    RearLeft.setPower(0);
-                    RearRight.setPower(0);
+                    myTimer.reset();
+                    while (myTimer.seconds() <= 1) {
+                    }
                     DropArm.setPosition(DropArm.getPosition() - 0.05);
                     myTimer.reset();
                     while (myTimer.seconds() <= 1) {
@@ -227,7 +223,7 @@ public class CenterstageBlueLeftAutoV2 extends LinearOpMode {
         RearRight.setPower(0);
         DropPixel();
         MoveBackwardEncoder(5);
-        while (opModeIsActive() && Z_Rotation <= 90) {
+        while (opModeIsActive() && Z_Rotation <= 85) {
             FrontLeft.setPower(-0.25);
             FrontRight.setPower(0.25);
             RearLeft.setPower(-0.25);
@@ -260,7 +256,7 @@ public class CenterstageBlueLeftAutoV2 extends LinearOpMode {
         RearRight.setPower(0);
         StrafeLeft(0.75);
         IMU_Telemetry();
-        while (opModeIsActive() && Z_Rotation <= 90) {
+        while (opModeIsActive() && Z_Rotation <= 85) {
             FrontLeft.setPower(-0.25);
             FrontRight.setPower(0.25);
             RearLeft.setPower(-0.25);
@@ -278,7 +274,7 @@ public class CenterstageBlueLeftAutoV2 extends LinearOpMode {
      */
     private void SpikeRightEncoderMinimal() {
         MoveForwardEncoder(28);
-        while (opModeIsActive() && Z_Rotation >= -90) {
+        while (opModeIsActive() && Z_Rotation >= -85) {
             FrontLeft.setPower(0.25);
             FrontRight.setPower(-0.25);
             RearLeft.setPower(0.25);
@@ -293,7 +289,7 @@ public class CenterstageBlueLeftAutoV2 extends LinearOpMode {
         RearRight.setPower(0);
         DropPixel();
         MoveBackwardEncoder(6);
-        while (opModeIsActive() && Z_Rotation <= 90) {
+        while (opModeIsActive() && Z_Rotation <= 85) {
             FrontLeft.setPower(-0.25);
             FrontRight.setPower(0.25);
             RearLeft.setPower(-0.25);

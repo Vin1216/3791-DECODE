@@ -88,7 +88,7 @@ public class CenterstageRedRightAutoV2 extends LinearOpMode {
     Init_IMU();
     IMU_Telemetry();
     Init_VisionPortal();
-    ticksperRevolution = 480;
+    ticksperRevolution = 550;
     wheelCircumference = 12.56;
     ticksPerInch = ticksperRevolution / wheelCircumference;
     // A single square is about 22 inches.
@@ -174,6 +174,9 @@ public class CenterstageRedRightAutoV2 extends LinearOpMode {
 //          StrafeLeft(0.3 + 0.2 / (reqID - 3));
 //          MoveForwardEncoder(4);
           DropArm.setPosition(1);
+          while (DropArm.getPosition() < 0.5) {
+            MoveBackwardEncoder(2);
+          }
           myTimer.reset();
           while (myTimer.seconds() <= 1) {
           }
@@ -187,7 +190,7 @@ public class CenterstageRedRightAutoV2 extends LinearOpMode {
           MoveBackwardEncoder(6);
           DropArm.setPosition(-1);
           StrafeRight(1.6 + 0.3 / (reqID - 3));
-          MoveForwardEncoder(14);
+          MoveForwardEncoder(18);
           PushServo.setPosition(0);
           State = "AAAAAAAAAAAA";
         }
@@ -227,22 +230,22 @@ public class CenterstageRedRightAutoV2 extends LinearOpMode {
    */
   private void SpikeLeftEncoderMinimal() {
     MoveForwardEncoder(28);
-    while (opModeIsActive() && Z_Rotation <= 90) {
+    while (opModeIsActive() && Z_Rotation <= 85) {
       FrontLeft.setPower(-0.25);
       FrontRight.setPower(0.25);
       RearLeft.setPower(-0.25);
       RearRight.setPower(0.25);
       IMU_Telemetry();
     }
-    MoveForwardEncoder(6);
-    MoveBackwardEncoder(5);
+    MoveForwardEncoder(8);
+    MoveBackwardEncoder(4);
     FrontLeft.setPower(0);
     FrontRight.setPower(0);
     RearLeft.setPower(0);
     RearRight.setPower(0);
     DropPixel();
     MoveBackwardEncoder(6);
-    while (opModeIsActive() && Z_Rotation >= -90) {
+    while (opModeIsActive() && Z_Rotation >= -85) {
       FrontLeft.setPower(0.25);
       FrontRight.setPower(-0.25);
       RearLeft.setPower(0.25);
@@ -250,14 +253,14 @@ public class CenterstageRedRightAutoV2 extends LinearOpMode {
       IMU_Telemetry();
     }
     MoveForwardEncoder(11);
-    StrafeLeft(0.4);
+    StrafeLeft(0.6);
   }
 
   /**
    * Describe this function...
    */
   private void SpikeRightEncoderMinimal() {
-    StrafeRight(0.6);
+    StrafeRight(0.55);
     MoveForwardEncoder(23);
     MoveBackwardEncoder(6);
     FrontLeft.setPower(0);
@@ -272,18 +275,18 @@ public class CenterstageRedRightAutoV2 extends LinearOpMode {
     RearRight.setPower(0);
     StrafeRight(0.75);
     IMU_Telemetry();
-    while (opModeIsActive() && Z_Rotation >= -90) {
-      FrontLeft.setPower(0.5);
-      FrontRight.setPower(-0.5);
-      RearLeft.setPower(0.5);
-      RearRight.setPower(-0.5);
+    while (opModeIsActive() && Z_Rotation >= -80) {
+      FrontLeft.setPower(0.25);
+      FrontRight.setPower(-0.25);
+      RearLeft.setPower(0.25);
+      RearRight.setPower(-0.25);
       IMU_Telemetry();
     }
     FrontLeft.setPower(0);
     FrontRight.setPower(0);
     RearLeft.setPower(0);
     RearRight.setPower(0);
-    StrafeLeft(0.75);
+    StrafeLeft(1);
   }
 
   /**
@@ -425,7 +428,7 @@ public class CenterstageRedRightAutoV2 extends LinearOpMode {
       RearLeft.setPower(0);
 
       DetectAprilTags();
-      MoveForwardEncoder((int) Math.round(myAprilTagPoseRange - 9.5));
+      MoveForwardEncoder((int) Math.round(myAprilTagPoseRange - 8.5));
     }
   }
 

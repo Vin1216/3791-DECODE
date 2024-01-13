@@ -174,6 +174,9 @@ public class CenterstageBlueRightAutoV2 extends LinearOpMode {
 //          StrafeLeft(0.3 + 0.15 / reqID);
 //          MoveForwardEncoder(2);
           DropArm.setPosition(1);
+          while (DropArm.getPosition() < 0.5) {
+            MoveBackwardEncoder(2);
+          }
           myTimer.reset();
           while (myTimer.seconds() <= 1) {
           }
@@ -423,7 +426,7 @@ public class CenterstageBlueRightAutoV2 extends LinearOpMode {
       RearLeft.setPower(0);
 
       DetectAprilTags();
-      MoveForwardEncoder((int) Math.round(myAprilTagPoseRange - 9.5));
+      MoveForwardEncoder((int) Math.round(myAprilTagPoseRange - 8.5));
     }
   }
 
