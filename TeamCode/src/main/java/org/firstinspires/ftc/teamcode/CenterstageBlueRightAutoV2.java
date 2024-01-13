@@ -59,6 +59,8 @@ public class CenterstageBlueRightAutoV2 extends LinearOpMode {
   double power = 0.1;
   boolean rampUp = true;
 
+  double AprilTagStrafeError = 1.4;
+
   /**
    * This function is executed when this OpMode is selected from the Driver Station.
    */
@@ -189,7 +191,7 @@ public class CenterstageBlueRightAutoV2 extends LinearOpMode {
         if (State.equals("Park")) {
           MoveBackwardEncoder(6);
           DropArm.setPosition(-1);
-          StrafeRight(1.4 + 0.3 / reqID);
+          StrafeRight(1 + 0.3 / reqID);
           MoveForwardEncoder(20);
           PushServo.setPosition(0);
           State = "AAAAAAAAAAAA";
@@ -210,9 +212,9 @@ public class CenterstageBlueRightAutoV2 extends LinearOpMode {
     RearRight.setPower(0);
     DropPixel();
     MoveBackwardEncoder(5);
-    StrafeRight(0.75);
-    MoveForwardEncoder(40);
-    while (opModeIsActive() && Z_Rotation <= 90) {
+    StrafeRight(1);
+    MoveForwardEncoder(28);
+    while (opModeIsActive() && Z_Rotation <= 85) {
       FrontLeft.setPower(-0.25);
       FrontRight.setPower(0.25);
       RearLeft.setPower(-0.25);
@@ -232,7 +234,7 @@ public class CenterstageBlueRightAutoV2 extends LinearOpMode {
    */
   private void SpikeLeftEncoderMinimal() {
     MoveForwardEncoder(28);
-    while (opModeIsActive() && Z_Rotation <= 90) {
+    while (opModeIsActive() && Z_Rotation <= 80) {
       FrontLeft.setPower(-0.25);
       FrontRight.setPower(0.25);
       RearLeft.setPower(-0.25);
@@ -246,10 +248,10 @@ public class CenterstageBlueRightAutoV2 extends LinearOpMode {
     RearLeft.setPower(0);
     RearRight.setPower(0);
     DropPixel();
-    MoveBackwardEncoder(22);
+    MoveBackwardEncoder(11);
     StrafeRight(1.3);
-    MoveForwardEncoder(88);
-    StrafeLeft(1.5);
+    MoveForwardEncoder(80);
+    StrafeLeft(1.85);
   }
 
   /**
@@ -257,20 +259,20 @@ public class CenterstageBlueRightAutoV2 extends LinearOpMode {
    */
   private void SpikeRightEncoderMinimal() {
     StrafeRight(0.55);
-    MoveForwardEncoder(25);
+    MoveForwardEncoder(23);
     MoveBackwardEncoder(6);
     FrontLeft.setPower(0);
     FrontRight.setPower(0);
     RearLeft.setPower(0);
     RearRight.setPower(0);
     DropPixel();
-    MoveBackwardEncoder(8);
+    MoveBackwardEncoder(6);
     FrontLeft.setPower(0);
     FrontRight.setPower(0);
     RearLeft.setPower(0);
     RearRight.setPower(0);
-    StrafeRight(0.65);
-    MoveForwardEncoder(42);
+    StrafeRight(0.8);
+    MoveForwardEncoder(36);
     IMU_Telemetry();
     while (opModeIsActive() && Z_Rotation <= 85) {
       FrontLeft.setPower(-0.25);
@@ -284,7 +286,7 @@ public class CenterstageBlueRightAutoV2 extends LinearOpMode {
     RearLeft.setPower(0);
     RearRight.setPower(0);
     MoveForwardEncoder(88);
-    StrafeLeft(1.5);
+    StrafeLeft(0.6);
   }
 
   /**
@@ -380,6 +382,7 @@ public class CenterstageBlueRightAutoV2 extends LinearOpMode {
     }
     if (SpikeX == null) {
       State = "SpikeLeft";
+      AprilTagStrafeError = 1;
       reqID = 1;
       telemetry.addLine("SpikeLeft");
       telemetry.update();
@@ -416,9 +419,9 @@ public class CenterstageBlueRightAutoV2 extends LinearOpMode {
     } else {
       DetectAprilTags();
       if (myAprilTagPoseX < -0.2) {
-        StrafeLeftEncoder((int) Math.abs(myAprilTagPoseX * 1.4));
+        StrafeLeftEncoder((int) Math.abs(myAprilTagPoseX * AprilTagStrafeError));
       } else if (myAprilTagPoseX > 0.2) {
-        StrafeRightEncoder((int) Math.abs(myAprilTagPoseX * 1.4));
+        StrafeRightEncoder((int) Math.abs(myAprilTagPoseX * AprilTagStrafeError));
       }
       FrontRight.setPower(0);
       FrontLeft.setPower(0);
