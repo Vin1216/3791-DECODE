@@ -21,6 +21,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import org.firstinspires.ftc.vision.tfod.TfodProcessor;
 
 import java.util.List;
+import java.util.Objects;
 
 @Autonomous(name = "CenterstageRedRightAutoV2")
 public class CenterstageRedRightAutoV2 extends LinearOpMode {
@@ -114,8 +115,9 @@ public class CenterstageRedRightAutoV2 extends LinearOpMode {
           State = "FindBackboard";
         }
         if (State.equals("FindBackboard")) {
+          DetectAprilTags();
           myTimer.reset();
-          while (opModeIsActive() && myAprilTagIdCode != reqID) {
+          while (opModeIsActive() && !Objects.equals(myAprilTagIdCode, reqID)) {
             if (myAprilTagIdCode == null) {
               FrontLeft.setPower(0.15);
               FrontRight.setPower(-0.15);
@@ -129,7 +131,7 @@ public class CenterstageRedRightAutoV2 extends LinearOpMode {
               RearRight.setPower(0.15);
               DetectAprilTags();
             }
-            if (myTimer.seconds() >= 6) {
+            if (myTimer.seconds() >= 4) {
               IMU_Telemetry();
               if (Z_Rotation <= -90) {
                 while (Z_Rotation <= -90) {
@@ -229,7 +231,7 @@ public class CenterstageRedRightAutoV2 extends LinearOpMode {
    * Describe this function...
    */
   private void SpikeLeftEncoderMinimal() {
-    MoveForwardEncoder(28);
+    MoveForwardEncoder(26);
     while (opModeIsActive() && Z_Rotation <= 85) {
       FrontLeft.setPower(-0.25);
       FrontRight.setPower(0.25);

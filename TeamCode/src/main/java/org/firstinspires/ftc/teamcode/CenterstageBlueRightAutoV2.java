@@ -21,6 +21,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import org.firstinspires.ftc.vision.tfod.TfodProcessor;
 
 import java.util.List;
+import java.util.Objects;
 
 @Autonomous(name = "CenterstageBlueRightAutoV2")
 public class CenterstageBlueRightAutoV2 extends LinearOpMode {
@@ -116,8 +117,9 @@ public class CenterstageBlueRightAutoV2 extends LinearOpMode {
           State = "FindBackboard";
         }
         if (State.equals("FindBackboard")) {
+          DetectAprilTags();
           myTimer.reset();
-          while (opModeIsActive() && myAprilTagIdCode != reqID && myTimer.seconds() <= 5) {
+          while (opModeIsActive() && !Objects.equals(myAprilTagIdCode, reqID)) {
             if (myAprilTagIdCode == null) {
               FrontLeft.setPower(0.15);
               FrontRight.setPower(-0.15);
@@ -131,7 +133,7 @@ public class CenterstageBlueRightAutoV2 extends LinearOpMode {
               RearRight.setPower(0.15);
               DetectAprilTags();
             }
-            if (myTimer.seconds() >= 6) {
+            if (myTimer.seconds() >= 4) {
               IMU_Telemetry();
               if (Z_Rotation <= -90) {
                 while (Z_Rotation <= -90) {
@@ -191,7 +193,12 @@ public class CenterstageBlueRightAutoV2 extends LinearOpMode {
         if (State.equals("Park")) {
           MoveBackwardEncoder(6);
           DropArm.setPosition(-1);
-          StrafeRight(1 + 0.3 / reqID);
+          if(reqID == 1) {
+            StrafeRight(1.9);
+          }
+          else {
+            StrafeRight(1 + 0.3 / reqID);
+          }
           MoveForwardEncoder(20);
           PushServo.setPosition(0);
           State = "AAAAAAAAAAAA";
@@ -233,15 +240,15 @@ public class CenterstageBlueRightAutoV2 extends LinearOpMode {
    * Describe this function...
    */
   private void SpikeLeftEncoderMinimal() {
-    MoveForwardEncoder(28);
-    while (opModeIsActive() && Z_Rotation <= 80) {
+    MoveForwardEncoder(27);
+    while (opModeIsActive() && Z_Rotation <= 85) {
       FrontLeft.setPower(-0.25);
       FrontRight.setPower(0.25);
       RearLeft.setPower(-0.25);
       RearRight.setPower(0.25);
       IMU_Telemetry();
     }
-    MoveForwardEncoder(8);
+    MoveForwardEncoder(9);
     MoveBackwardEncoder(4);
     FrontLeft.setPower(0);
     FrontRight.setPower(0);
@@ -271,8 +278,8 @@ public class CenterstageBlueRightAutoV2 extends LinearOpMode {
     FrontRight.setPower(0);
     RearLeft.setPower(0);
     RearRight.setPower(0);
-    StrafeRight(0.8);
-    MoveForwardEncoder(36);
+    StrafeRight(0.7);
+    MoveForwardEncoder(38);
     IMU_Telemetry();
     while (opModeIsActive() && Z_Rotation <= 85) {
       FrontLeft.setPower(-0.25);
@@ -286,7 +293,7 @@ public class CenterstageBlueRightAutoV2 extends LinearOpMode {
     RearLeft.setPower(0);
     RearRight.setPower(0);
     MoveForwardEncoder(88);
-    StrafeLeft(0.6);
+    StrafeLeft(1.25);
   }
 
   /**
@@ -375,6 +382,7 @@ public class CenterstageBlueRightAutoV2 extends LinearOpMode {
         telemetry.update();
       } else {
         State = "SpikeRight";
+        AprilTagStrafeError = 1;
         reqID = 3;
         telemetry.addLine("SpikeRight");
         telemetry.update();
