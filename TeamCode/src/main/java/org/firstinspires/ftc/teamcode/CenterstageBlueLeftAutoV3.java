@@ -100,8 +100,7 @@ public class CenterstageBlueLeftAutoV3 extends LinearOpMode {
         waitForStart();
         if (opModeIsActive()) {
             // Put run blocks here.
-            State = "FindBackboard";
-            reqID = 2;
+            State = "DetectSpike";
             while (opModeIsActive()) {
                 if (State.equals("Test")) {
                     MoveForwardEncoder(10);
