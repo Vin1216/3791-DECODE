@@ -195,7 +195,7 @@ public class CenterstageBlueLeftAutoV3 extends LinearOpMode {
                 if (State.equals("Park")) {
                     MoveBackwardEncoder(6);
                     DropArm.setPosition(-1);
-                    StrafeLeft(1 + 0.35 * reqID);
+                    StrafeLeftEncoder(32 + (reqID * 4));
                     MoveForwardEncoder(18);
                     PushServo.setPosition(0);
                     State = "AAAAAAAAAAAA";
