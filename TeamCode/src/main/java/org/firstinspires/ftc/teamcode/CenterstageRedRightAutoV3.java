@@ -400,6 +400,9 @@ public class CenterstageRedRightAutoV3 extends LinearOpMode {
       myAprilTagDetection = myAprilTagDetection_item;
       if (myAprilTagDetection.metadata != null) {
         myAprilTagIdCode = myAprilTagDetection.id;
+        if (myAprilTagIdCode == reqID - 3) {
+          reqID = reqID - 3;
+        }
         if (myAprilTagIdCode == reqID) {
           myAprilTagPoseX = myAprilTagDetection.ftcPose.x;
           myAprilTagPoseBearing = myAprilTagDetection.ftcPose.bearing;
