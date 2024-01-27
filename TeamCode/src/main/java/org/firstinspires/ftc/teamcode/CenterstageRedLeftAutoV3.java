@@ -37,7 +37,7 @@ public class CenterstageRedLeftAutoV3 extends LinearOpMode {
     private Servo DropArm;
     private VoltageSensor ControlHub_VoltageSensor;
     private Servo scoop;
-    private Servo ClawServo;
+    private Servo preset;
 
     Integer reqID;
     List<AprilTagDetection> myAprilTagDetections;
@@ -82,7 +82,7 @@ public class CenterstageRedLeftAutoV3 extends LinearOpMode {
         DropArm = hardwareMap.get(Servo.class, "DropArm");
         ControlHub_VoltageSensor = hardwareMap.get(VoltageSensor.class, "Control Hub");
         scoop = hardwareMap.get(Servo.class, "scoop");
-        ClawServo = hardwareMap.get(Servo.class, "ClawServo");
+        preset = hardwareMap.get(Servo.class, "preset");
 
         // Put initialization blocks here.
         FrontRight.setDirection(DcMotor.Direction.REVERSE);
@@ -725,14 +725,6 @@ public class CenterstageRedLeftAutoV3 extends LinearOpMode {
     /**
      * Describe this function...
      */
-    private void ScoopInit() {
-        ClawServo.setDirection(Servo.Direction.REVERSE);
-        ClawServo.setPosition(1);
-    }
-
-    /**
-     * Describe this function...
-     */
     private void StrafeRight(double StrafeTime) {
         myTimer.reset();
         while (myTimer.seconds() <= StrafeTime * (13 / ControlHub_VoltageSensor.getVoltage())) {
@@ -745,20 +737,6 @@ public class CenterstageRedLeftAutoV3 extends LinearOpMode {
         FrontRight.setPower(0);
         RearLeft.setPower(0);
         RearRight.setPower(0);
-    }
-
-    /**
-     * Describe this function...
-     */
-    private void ScoopOpen() {
-        scoop.setPosition(1);
-    }
-
-    /**
-     * Describe this function...
-     */
-    private void ScoopClose() {
-        scoop.setPosition(0.7);
     }
 
     /**

@@ -36,7 +36,7 @@ public class CenterstageRedRightAutoV3 extends LinearOpMode {
   private Servo DropArm;
   private VoltageSensor ControlHub_VoltageSensor;
   private Servo scoop;
-  private Servo ClawServo;
+  private Servo preset;
 
   Integer reqID;
   List<AprilTagDetection> myAprilTagDetections;
@@ -78,7 +78,7 @@ public class CenterstageRedRightAutoV3 extends LinearOpMode {
     DropArm = hardwareMap.get(Servo.class, "DropArm");
     ControlHub_VoltageSensor = hardwareMap.get(VoltageSensor.class, "Control Hub");
     scoop = hardwareMap.get(Servo.class, "scoop");
-    ClawServo = hardwareMap.get(Servo.class, "ClawServo");
+    preset = hardwareMap.get(Servo.class, "preset");
 
     // Put initialization blocks here.
     FrontRight.setDirection(DcMotor.Direction.REVERSE);
@@ -660,14 +660,6 @@ public class CenterstageRedRightAutoV3 extends LinearOpMode {
     while (myTimer.milliseconds() <= 500) {
     }
     scoop.setPosition(0.7);
-  }
-
-  /**
-   * Describe this function...
-   */
-  private void ScoopInit() {
-    ClawServo.setDirection(Servo.Direction.REVERSE);
-    ClawServo.setPosition(1);
   }
 
   /**

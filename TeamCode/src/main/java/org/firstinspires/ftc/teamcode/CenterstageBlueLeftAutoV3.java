@@ -37,7 +37,7 @@ public class CenterstageBlueLeftAutoV3 extends LinearOpMode {
     private Servo DropArm;
     private VoltageSensor ControlHub_VoltageSensor;
     private Servo scoop;
-    private Servo ClawServo;
+    private Servo preset;
 
     Integer reqID;
     List<AprilTagDetection> myAprilTagDetections;
@@ -80,7 +80,7 @@ public class CenterstageBlueLeftAutoV3 extends LinearOpMode {
         DropArm = hardwareMap.get(Servo.class, "DropArm");
         ControlHub_VoltageSensor = hardwareMap.get(VoltageSensor.class, "Control Hub");
         scoop = hardwareMap.get(Servo.class, "scoop");
-        ClawServo = hardwareMap.get(Servo.class, "ClawServo");
+        preset = hardwareMap.get(Servo.class, "preset");
 
         // Put initialization blocks here.
         FrontRight.setDirection(DcMotor.Direction.REVERSE);
@@ -630,35 +630,6 @@ public class CenterstageBlueLeftAutoV3 extends LinearOpMode {
     /**
      * Describe this function...
      */
-    private void RaiseLift(
-            int LiftHeight) {
-        myTimer.reset();
-        while (myTimer.seconds() <= LiftHeight) {
-            LiftMotor2.setPower(0.5);
-            intake.setPower(0);
-        }
-        LiftMotor2.setPower(0);
-        intake.setPower(0);
-    }
-
-    /**
-     * Describe this function...
-     */
-    private void LowerLift(int LiftHeight) {
-        // NOT WORKING RIGHT NOW
-        LiftMotor2.setTargetPosition(LiftHeight * -100);
-        LiftMotor2.setTargetPosition(LiftHeight * -100);
-        LiftMotor2.setPower(-1);
-        LiftMotor2.setPower(-1);
-        while (LiftMotor2.isBusy()) {
-        }
-        LiftMotor2.setPower(0);
-        LiftMotor2.setPower(0);
-    }
-
-    /**
-     * Describe this function...
-     */
     private void ResetEncoder() {
         FrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         FrontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -721,14 +692,6 @@ public class CenterstageBlueLeftAutoV3 extends LinearOpMode {
     /**
      * Describe this function...
      */
-    private void ScoopInit() {
-        ClawServo.setDirection(Servo.Direction.REVERSE);
-        ClawServo.setPosition(1);
-    }
-
-    /**
-     * Describe this function...
-     */
     private void StrafeRight(int StrafeTime) {
         myTimer.reset();
         while (myTimer.seconds() <= StrafeTime * (13 / ControlHub_VoltageSensor.getVoltage())) {
@@ -743,23 +706,6 @@ public class CenterstageBlueLeftAutoV3 extends LinearOpMode {
         RearRight.setPower(0);
     }
 
-    /**
-     * Describe this function...
-     */
-    private void ScoopOpen() {
-        scoop.setPosition(1);
-    }
-
-    /**
-     * Describe this function...
-     */
-    private void ScoopClose() {
-        scoop.setPosition(0.7);
-    }
-
-    /**
-     * Describe this function...
-     */
     private void myTimerTelemetry() {
         telemetry.addLine("Time: " + myTimer.time());
         telemetry.update();
