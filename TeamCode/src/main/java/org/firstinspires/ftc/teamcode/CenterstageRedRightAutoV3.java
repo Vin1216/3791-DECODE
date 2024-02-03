@@ -85,7 +85,6 @@ public class CenterstageRedRightAutoV3 extends LinearOpMode {
     FrontLeft.setDirection(DcMotor.Direction.REVERSE);
     RearLeft.setDirection(DcMotor.Direction.REVERSE);
     RearRight.setDirection(DcMotor.Direction.REVERSE);
-    PushServo.setPosition(0);
     Init_IMU();
     IMU_Telemetry();
     Init_VisionPortal();
@@ -191,7 +190,7 @@ public class CenterstageRedRightAutoV3 extends LinearOpMode {
         if (State.equals("Park")) {
           MoveBackwardEncoder(6);
           DropArm.setPosition(-1);
-          StrafeRight(32 + ((reqID - 3) * 4));
+          StrafeRightEncoder(28 + ((reqID - 3) * 4));
           MoveForwardEncoder(18);
           PushServo.setPosition(0);
           State = "AAAAAAAAAAAA";
@@ -275,7 +274,7 @@ public class CenterstageRedRightAutoV3 extends LinearOpMode {
     FrontRight.setPower(0);
     RearLeft.setPower(0);
     RearRight.setPower(0);
-    StrafeRight(0.75);
+    StrafeRight(0.85);
     IMU_Telemetry();
     while (opModeIsActive() && Z_Rotation >= -80) {
       FrontLeft.setPower(0.25);

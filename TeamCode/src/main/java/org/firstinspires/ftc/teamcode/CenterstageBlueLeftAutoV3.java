@@ -88,7 +88,6 @@ public class CenterstageBlueLeftAutoV3 extends LinearOpMode {
         RearLeft.setDirection(DcMotor.Direction.REVERSE);
         RearRight.setDirection(DcMotor.Direction.REVERSE);
         LiftMotor2.setDirection(DcMotor.Direction.REVERSE);
-        PushServo.setPosition(0);
         Init_IMU();
         IMU_Telemetry();
         Init_VisionPortal();
@@ -127,16 +126,16 @@ public class CenterstageBlueLeftAutoV3 extends LinearOpMode {
                     myTimer.reset();
                     while (opModeIsActive() && !Objects.equals(myAprilTagIdCode, reqID)) {
                         if (myAprilTagIdCode == null || myAprilTagIdCode > reqID) {
-                            FrontLeft.setPower(-0.35);
-                            FrontRight.setPower(0.35);
-                            RearLeft.setPower(0.35);
-                            RearRight.setPower(-0.35);
+                            FrontLeft.setPower(-0.15);
+                            FrontRight.setPower(0.15);
+                            RearLeft.setPower(0.15);
+                            RearRight.setPower(-0.15);
                             DetectAprilTags();
                         } else {
-                            FrontLeft.setPower(0.35);
-                            FrontRight.setPower(-0.35);
-                            RearLeft.setPower(-0.35);
-                            RearRight.setPower(0.35);
+                            FrontLeft.setPower(0.15);
+                            FrontRight.setPower(-0.15);
+                            RearLeft.setPower(-0.15);
+                            RearRight.setPower(0.15);
                             DetectAprilTags();
                         }
                         if (myTimer.seconds() >= 4) {
@@ -195,7 +194,7 @@ public class CenterstageBlueLeftAutoV3 extends LinearOpMode {
                 if (State.equals("Park")) {
                     MoveBackwardEncoder(6);
                     DropArm.setPosition(-1);
-                    StrafeLeftEncoder(32 + (reqID * 4));
+                    StrafeLeftEncoder(26 + (reqID * 4));
                     MoveForwardEncoder(18);
                     PushServo.setPosition(0);
                     State = "AAAAAAAAAAAA";
@@ -266,7 +265,7 @@ public class CenterstageBlueLeftAutoV3 extends LinearOpMode {
      * Describe this function...
      */
     private void SpikeRightEncoderMinimal() {
-        MoveForwardEncoder(28);
+        MoveForwardEncoder(26);
         while (opModeIsActive() && Z_Rotation >= -85) {
             FrontLeft.setPower(0.25);
             FrontRight.setPower(-0.25);
@@ -274,7 +273,7 @@ public class CenterstageBlueLeftAutoV3 extends LinearOpMode {
             RearRight.setPower(-0.25);
             IMU_Telemetry();
         }
-        MoveForwardEncoder(8);
+        MoveForwardEncoder(9);
         MoveBackwardEncoder(4);
         FrontLeft.setPower(0);
         FrontRight.setPower(0);

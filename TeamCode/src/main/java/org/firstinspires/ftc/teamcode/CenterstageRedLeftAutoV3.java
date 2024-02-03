@@ -90,7 +90,6 @@ public class CenterstageRedLeftAutoV3 extends LinearOpMode {
         RearLeft.setDirection(DcMotor.Direction.REVERSE);
         RearRight.setDirection(DcMotor.Direction.REVERSE);
         LiftMotor2.setDirection(DcMotor.Direction.REVERSE);
-        PushServo.setPosition(0);
         Init_IMU();
         IMU_Telemetry();
         Init_VisionPortal();
@@ -124,16 +123,16 @@ public class CenterstageRedLeftAutoV3 extends LinearOpMode {
                     myTimer.reset();
                     while (opModeIsActive() && !Objects.equals(myAprilTagIdCode, reqID)) {
                         if (myAprilTagIdCode == null || myAprilTagIdCode < reqID) {
-                            FrontLeft.setPower(0.35);
-                            FrontRight.setPower(-0.35);
-                            RearLeft.setPower(-0.35);
-                            RearRight.setPower(0.35);
+                            FrontLeft.setPower(0.15);
+                            FrontRight.setPower(-0.15);
+                            RearLeft.setPower(-0.15);
+                            RearRight.setPower(0.15);
                             DetectAprilTags();
                         } else {
-                            FrontLeft.setPower(-0.35);
-                            FrontRight.setPower(0.35);
-                            RearLeft.setPower(0.35);
-                            RearRight.setPower(-0.35);
+                            FrontLeft.setPower(-0.15);
+                            FrontRight.setPower(0.15);
+                            RearLeft.setPower(0.15);
+                            RearRight.setPower(-0.15);
                             DetectAprilTags();
                         }
                         if (myTimer.seconds() >= 4) {
@@ -191,12 +190,12 @@ public class CenterstageRedLeftAutoV3 extends LinearOpMode {
                     myTimer.reset();
                     while (myTimer.seconds() <= 1) {
                     }
-                    State = "Park";
+                    State = "AAAAAAAAAAA";
                 }
                 if (State.equals("Park")) {
                     MoveBackwardEncoder(6);
                     DropArm.setPosition(-1);
-                    StrafeLeftEncoder(32 - ((reqID - 3) * 4));
+                    StrafeLeftEncoder(26 - ((reqID - 3) * 4));
                     MoveForwardEncoder(18);
                     PushServo.setPosition(0);
                     State = "AAAAAAAAAAAA";
@@ -291,7 +290,7 @@ public class CenterstageRedLeftAutoV3 extends LinearOpMode {
         MoveBackwardEncoder(11);
         StrafeLeft(1.3);
         MoveForwardEncoder(78);
-        StrafeRight(1.6);
+        StrafeRight(1.45);
     }
 
     /**

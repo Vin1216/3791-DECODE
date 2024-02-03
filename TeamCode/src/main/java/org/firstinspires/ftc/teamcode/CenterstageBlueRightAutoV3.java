@@ -87,7 +87,6 @@ public class CenterstageBlueRightAutoV3 extends LinearOpMode {
     FrontLeft.setDirection(DcMotor.Direction.REVERSE);
     RearLeft.setDirection(DcMotor.Direction.REVERSE);
     RearRight.setDirection(DcMotor.Direction.REVERSE);
-    PushServo.setPosition(0);
     Init_IMU();
     IMU_Telemetry();
     Init_VisionPortal();
@@ -121,16 +120,16 @@ public class CenterstageBlueRightAutoV3 extends LinearOpMode {
           myTimer.reset();
           while (opModeIsActive() && !Objects.equals(myAprilTagIdCode, reqID)) {
             if (myAprilTagIdCode == null || myAprilTagIdCode > reqID) {
-              FrontLeft.setPower(-0.35);
-              FrontRight.setPower(0.35);
-              RearLeft.setPower(0.35);
-              RearRight.setPower(-0.35);
+              FrontLeft.setPower(-0.15);
+              FrontRight.setPower(0.15);
+              RearLeft.setPower(0.15);
+              RearRight.setPower(-0.15);
               DetectAprilTags();
             } else {
-              FrontLeft.setPower(0.35);
-              FrontRight.setPower(-0.35);
-              RearLeft.setPower(-0.35);
-              RearRight.setPower(0.35);
+              FrontLeft.setPower(0.15);
+              FrontRight.setPower(-0.15);
+              RearLeft.setPower(-0.15);
+              RearRight.setPower(0.15);
               DetectAprilTags();
             }
             if (myTimer.seconds() >= 4) {
@@ -188,12 +187,12 @@ public class CenterstageBlueRightAutoV3 extends LinearOpMode {
           myTimer.reset();
           while (myTimer.seconds() <= 1) {
           }
-          State = "Park";
+          State = "AAAAAAAAAAA";
         }
         if (State.equals("Park")) {
           MoveBackwardEncoder(6);
           DropArm.setPosition(-1);
-          StrafeRightEncoder(32 - (reqID * 4));
+          StrafeRightEncoder(26 - (reqID * 4));
           MoveForwardEncoder(20);
           PushServo.setPosition(0);
           State = "AAAAAAAAAAAA";
