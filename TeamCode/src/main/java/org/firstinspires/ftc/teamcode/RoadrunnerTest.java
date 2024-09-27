@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
-import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -25,7 +24,7 @@ public class RoadrunnerTest extends LinearOpMode {
                     .build();
 
             Trajectory traj2 = drive.trajectoryBuilder(traj1.end())
-                    .splineToSplineHeading(new Pose2d(35, 35, Math.toRadians(270)),Math.toRadians(270))
+                    .splineToSplineHeading(new Pose2d(35, 35, Math.toRadians(270)),Math.toRadians(0))
                     .build();
 
             drive.followTrajectory(traj1);
