@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -29,6 +30,8 @@ import java.util.concurrent.TimeUnit;
 @TeleOp(name = "DecodeTeleOpV1")
 public class DecodeTeleV1 extends LinearOpMode {
 
+    public int colorID = 20;
+
     private DcMotorEx FrontLeft;
     private DcMotorEx FrontRight;
     private DcMotorEx RearLeft;
@@ -36,6 +39,7 @@ public class DecodeTeleV1 extends LinearOpMode {
     private DcMotorEx flywheel1;
     private DcMotorEx flywheel2;
     private DcMotorEx IntakeMotor;
+    private Servo Kicker;
 
     private VisionPortal visionPortal = null;
     private AprilTagProcessor aprilTag;
@@ -90,22 +94,22 @@ public class DecodeTeleV1 extends LinearOpMode {
      */
     @Override
     public void runOpMode() {
-        MecanumDrive drive;
+        MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(0,0,0));;
         TrajectoryActionBuilder traj;
         PoseVelocity2d currentPose;
         Pose2d startpose = null;
 
 
-        double Reverse = 1;
+        double Reverse = -1;
         double SlowMode = 1;
         boolean AutoAim = false;
         double velocity = 1800;
         double maxVelocity = 2800;
 
-        int colorID = 20;
         boolean detectAprilTagsInit = true;
 
         double localizerDistanceToAprilTag;
+
 
         //------------------------------------------------CAMERA SETUP-------------------------------------------------------------
         initAprilTag();
@@ -135,7 +139,7 @@ public class DecodeTeleV1 extends LinearOpMode {
                 telemetry.addLine("  ^");
             }
             else {
-                telemetry.addLine("                                 ^");
+                telemetry.addLine("                               ^");
             }
             telemetry.update();
 
@@ -210,12 +214,12 @@ public class DecodeTeleV1 extends LinearOpMode {
                     totalRobotX.add(currentDetection.robotPose.getPosition().x);
                     telemetry.addData("Updating Y...", currentDetection.robotPose.getPosition().y);
                     totalRobotY.add(currentDetection.robotPose.getPosition().y);
-                    telemetry.addData("Updating Yaw...", currentDetection.robotPose.getOrientation().getYaw());
+                    telemetry.addData("Updating Yaw...", currentDetection.robotPose.getOrientation().getYaw(AngleUnit.DEGREES));
                     totalRobotYaw.add(currentDetection.robotPose.getOrientation().getYaw());
                     telemetry.update();
                 }
             }
-            startpose = new Pose2d(mean(totalRobotX), mean(totalRobotY), Math.toRadians(getAndConvertAprilTagYaw(currentDetection,mean(totalRobotYaw))));
+            startpose = new Pose2d(mean(totalRobotX), mean(totalRobotY), getAndConvertAprilTagYaw(currentDetection,mean(totalRobotYaw)));
 
         } else {
             telemetry.addData("Tag", "----------- none - ----------");
@@ -225,12 +229,11 @@ public class DecodeTeleV1 extends LinearOpMode {
             //TODO: Add the estimated end of the autonomous
             startpose = new Pose2d(66, -24, Math.toRadians(180));
         }
-        drive = new MecanumDrive(hardwareMap, startpose);
         drive.localizer.setPose(startpose);
 
-        telemetry.addData("FinalPoseX",startpose.position.x);
-        telemetry.addData("FinalPoseY",startpose.position.y);
-        telemetry.addData("FinalYaw", startpose.heading.log());
+        telemetry.addData("FinalPoseX: ",startpose.position.x);
+        telemetry.addData("FinalPoseY: ",startpose.position.y);
+        telemetry.addData("FinalYaw: ", startpose.heading.log());
         telemetry.update();
 
         //---------------------------------------------------HARDWARE INITIALIZATION---------------------------------------------------------------------
@@ -239,12 +242,13 @@ public class DecodeTeleV1 extends LinearOpMode {
         FrontRight = drive.rightFront;
         RearLeft = drive.leftBack;
         RearRight = drive.rightBack;
-        flywheel1 = hardwareMap.get(DcMotorEx.class, "GreenWheel1");
-        flywheel2 = hardwareMap.get(DcMotorEx.class, "GreenWheel2");
-//        IntakeMotor = hardwareMap.get(DcMotorEx.class, "IntakeMotor");
+        flywheel1 = hardwareMap.get(DcMotorEx.class, "flywheel1");
+        flywheel2 = hardwareMap.get(DcMotorEx.class, "flywheel2");
+        IntakeMotor = hardwareMap.get(DcMotorEx.class, "IntakeMotor");
+        Kicker = hardwareMap.get(Servo.class, "wshoot");
 
-        flywheel1.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
-        flywheel2.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+        flywheel1.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        flywheel2.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         flywheel1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         flywheel2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         Reversing();
@@ -254,21 +258,34 @@ public class DecodeTeleV1 extends LinearOpMode {
             while (opModeIsActive()) {
                 currentPose = drive.localizer.update();
 
-                FrontLeft.setPower(SlowMode * (Reverse * (gamepad1.left_stick_y - (gamepad1.left_stick_x + (gamepad1.right_trigger - gamepad1.left_trigger))) - gamepad1.right_stick_x));
-                FrontRight.setPower(SlowMode * (Reverse * (gamepad1.left_stick_y + (gamepad1.left_stick_x + (gamepad1.right_trigger - gamepad1.left_trigger))) + gamepad1.right_stick_x));
-                RearLeft.setPower(SlowMode * (Reverse * (gamepad1.left_stick_y + (gamepad1.left_stick_x + (gamepad1.right_trigger - gamepad1.left_trigger))) - gamepad1.right_stick_x));
-                RearRight.setPower(SlowMode * (Reverse * (gamepad1.left_stick_y - (gamepad1.left_stick_x + (gamepad1.right_trigger - gamepad1.left_trigger))) + gamepad1.right_stick_x));
-//                if (gamepad1.a) {
-//                    IntakeMotor.setPower(1);
-//                }
-//                if (gamepad1.b) {
-//                    IntakeMotor.setPower(0);
-//                }
+                FrontLeft.setPower(SlowMode * (Reverse * (gamepad1.left_stick_y - (gamepad1.left_stick_x + (gamepad1.right_trigger - gamepad1.left_trigger))) + (gamepad1.right_stick_x * 0.4)));
+                FrontRight.setPower(SlowMode * (Reverse * (gamepad1.left_stick_y + (gamepad1.left_stick_x + (gamepad1.right_trigger - gamepad1.left_trigger))) - (gamepad1.right_stick_x * 0.4)));
+                RearLeft.setPower(SlowMode * (Reverse * (gamepad1.left_stick_y + (gamepad1.left_stick_x + (gamepad1.right_trigger - gamepad1.left_trigger))) + (gamepad1.right_stick_x * 0.4)));
+                RearRight.setPower(SlowMode * (Reverse * (gamepad1.left_stick_y - (gamepad1.left_stick_x + (gamepad1.right_trigger - gamepad1.left_trigger))) - (gamepad1.right_stick_x * 0.4)));
+                if (gamepad1.right_bumper || gamepad1.b || gamepad1.a || gamepad2.x || gamepad2.y) {
+                    if(gamepad1.right_bumper || gamepad1.a || gamepad2.y) {
+                        IntakeMotor.setPower(1);
+                    }
+                    else {
+                        IntakeMotor.setPower(-1);
+                    }
+                }
+                else {
+                    IntakeMotor.setPower(0);
+                }
+                if(gamepad1.dpadUpWasPressed()) {
+                    Kicker.setPosition(0.7);
+                }
+                if(gamepad1.dpadDownWasPressed()) {
+                    Kicker.setPosition(0);
+                }
                 if (gamepad1.xWasPressed()) {
-                    Reverse = -1;
+                    flywheel1.setVelocity(0);
+                    flywheel2.setVelocity(0);
+                    Reverse = 1;
                 }
                 if (gamepad1.yWasPressed()) {
-                    Reverse = 1;
+                    Reverse = -1;
                 }
                 if (gamepad1.dpadRightWasPressed()) {
                     SlowMode = 0.4;
@@ -276,29 +293,38 @@ public class DecodeTeleV1 extends LinearOpMode {
                 if (gamepad1.dpadLeftWasPressed()) {
                     SlowMode = 1;
                 }
-                if (gamepad1.dpad_up) {
+                if (gamepad2.leftBumperWasPressed()) {
                     flywheel1.setVelocity(velocity);
                     flywheel2.setVelocity(velocity);
                 }
-                if (gamepad1.dpad_down) {
+                if (gamepad2.left_trigger > 0) {
                     flywheel1.setVelocity(0);
                     flywheel2.setVelocity(0);
                 }
-                if(gamepad2.dpad_up) {
+                if(gamepad2.dpadUpWasPressed()) {
+                    velocity = maxVelocity * 0.55;
+                }
+                if(gamepad2.dpadRightWasPressed()) {
+                    velocity = maxVelocity * 0.44;
+                }
+                if(gamepad2.dpadDownWasPressed()) {
+                    velocity = maxVelocity * 0.3;
+                }
+                if(gamepad2.right_trigger > 0) {
                     visionPortal.stopStreaming();
                 }
-                if(gamepad2.dpad_down) {
+                if(gamepad2.rightBumperWasPressed()) {
                     visionPortal.resumeStreaming();
                 }
-                if(gamepad2.leftBumperWasPressed()) {
+                if(gamepad2.aWasPressed()) {
                     velocity -= 50;
                 }
-                if(gamepad2.rightBumperWasPressed()) {
+                if(gamepad2.bWasPressed()) {
                     velocity += 50;
                 }
                 if (visionPortal.getCameraState() == VisionPortal.CameraState.STREAMING) {
                     telemetry.addLine("Camera: ON");
-                    currentDetections = aprilTag.getDetections();
+                    currentDetections = aprilTag.getFreshDetections();
                     if(currentDetections != null) {
                         numTags = currentDetections.size();
                         if (numTags > 0) {
@@ -319,9 +345,11 @@ public class DecodeTeleV1 extends LinearOpMode {
                     }
                 }
                 else {
+                    AutoAim = false;
                     telemetry.addLine("Camera: OFF");
+                    telemetry.addLine("AutoAim NOOOOOOOOOOOOOOO");
                 }
-                if(gamepad2.dpadRightWasPressed()) {
+                if(gamepad2.yWasPressed()) {
                     telemetry.addLine("UPDATING POSE FROM LAST DETECTED APRILTAG");
                     telemetry.update();
                     drive.localizer.setPose(new Pose2d(currentDetection.robotPose.getPosition().x,
@@ -330,7 +358,27 @@ public class DecodeTeleV1 extends LinearOpMode {
                 }
                 if(gamepad1.left_bumper && AutoAim) {
                     traj = drive.actionBuilder(drive.localizer.getPose())
-                            .turn(Math.toRadians(currentDetection.ftcPose.bearing));
+                                .turn(Math.toRadians(currentDetection.ftcPose.bearing) * 0.9);
+//                    if(colorID == 20) {
+//                        traj = drive.actionBuilder(drive.localizer.getPose())
+//                                .turn(Math.toRadians(currentDetection.ftcPose.bearing)
+//                                                + getAutoAimAdjustmentAngle(
+//                                                currentDetection.ftcPose.range,
+//                                                Math.sqrt(Math.pow(-72 - drive.localizer.getPose().position.x, 2) + Math.pow(-72 - drive.localizer.getPose().position.y, 2))
+//                                        )
+//                                );
+//                        Actions.runBlocking(traj.build());
+//                    }
+//                    else {
+//                        traj = drive.actionBuilder(drive.localizer.getPose())
+//                                .turn(Math.toRadians(currentDetection.ftcPose.bearing)
+//                                                + getAutoAimAdjustmentAngle(
+//                                                currentDetection.ftcPose.range,
+//                                                Math.sqrt(Math.pow(-72 - drive.localizer.getPose().position.x, 2) + Math.pow(72 - drive.localizer.getPose().position.y, 2))
+//                                        )
+//                                );
+//                        Actions.runBlocking(traj.build());
+//                    }
                     Actions.runBlocking(traj.build());
                 }
 
@@ -382,7 +430,7 @@ public class DecodeTeleV1 extends LinearOpMode {
         // Create the AprilTag processor by using a builder.
         //TODO: Adjust camera pose to match reality
         aprilTag = new AprilTagProcessor.Builder()
-                .setCameraPose(new Position(DistanceUnit.INCH,0.75,7.5,6.0,0),new YawPitchRollAngles(AngleUnit.DEGREES,0,-90,0,0))
+                .setCameraPose(new Position(DistanceUnit.INCH,0,0,14.0,0),new YawPitchRollAngles(AngleUnit.DEGREES,0,-90,0,0))
                 .build();
 
         // Create the WEBCAM vision portal by using a builder.
@@ -430,5 +478,18 @@ public class DecodeTeleV1 extends LinearOpMode {
             total = total + value;
         }
         return total / values.size();
+    }
+
+    private double getAutoAimAdjustmentAngle(double aprilTagDistance, double cornerDistance) {
+        double aprilTagDistanceSquared = Math.pow(aprilTagDistance, 2);
+        double cornerDistanceSquared = Math.pow(cornerDistance, 2);
+        double aprilTagtoCornerSquared = 512.0;
+        double angle = Math.acos((aprilTagtoCornerSquared - aprilTagDistanceSquared - cornerDistanceSquared) / (-2 * aprilTagDistance * cornerDistance));
+        if(angle > 0) {
+            return angle * 0.5;
+        }
+        else {
+            return 0;
+        }
     }
 }

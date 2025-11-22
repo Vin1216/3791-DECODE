@@ -1,7 +1,10 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
+import com.acmerobotics.roadrunner.TranslationalVelConstraint;
+import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -26,7 +29,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Autonomous
-public class DecodeAutoV1 extends LinearOpMode {
+public class DecodeAutoREDCLOSEV1 extends LinearOpMode {
     private VisionPortal visionPortal = null;
     private AprilTagProcessor aprilTag;
 
@@ -34,25 +37,31 @@ public class DecodeAutoV1 extends LinearOpMode {
 
     public long exposure = (long)200;
     public int gain = 200;
+    ElapsedTime myTimer = new ElapsedTime();
 
-    Pose2d startpose = null;
+    DcMotorEx IntakeMotor;
+    DcMotorEx GreenWheel1;
+    DcMotorEx GreenWheel2;
+    Servo Kicker;
 
-    MecanumDrive drive;
+    double maxVelocity = 2800;
 
     @Override
     public void runOpMode() {
+        PoseVelocity2d currentPose;
         //------------------------------------------------ACTUATORS & OTHER INITIALIZATION SETUP---------------------------------------
-        DcMotorEx GreenWheel1 = hardwareMap.get(DcMotorEx.class,"GreenWheel1");
-        DcMotorEx GreenWheel2 = hardwareMap.get(DcMotorEx.class,"GreenWheel2");
-        GreenWheel2.setDirection(DcMotorEx.Direction.REVERSE);
+        IntakeMotor = hardwareMap.get(DcMotorEx.class, "IntakeMotor");
+        GreenWheel1 = hardwareMap.get(DcMotorEx.class,"flywheel1");
+        GreenWheel2 = hardwareMap.get(DcMotorEx.class,"flywheel2");
+        GreenWheel1.setDirection(DcMotorEx.Direction.REVERSE);
 
         GreenWheel1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         GreenWheel2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        Servo Kicker = hardwareMap.get(Servo.class, "Kicker");
+        Kicker = hardwareMap.get(Servo.class, "wshoot");
 
-
-        ElapsedTime myTimer = new ElapsedTime();
+        MecanumDrive drive =  new MecanumDrive(hardwareMap, new Pose2d(0,0,0));
+        Pose2d startpose = null;
 
         //------------------------------------------------CAMERA SETUP-------------------------------------------------------------
         initAprilTag();
@@ -97,6 +106,8 @@ public class DecodeAutoV1 extends LinearOpMode {
                 totalRobotY.add(currentDetection.robotPose.getPosition().y);
 
                 switch (currentDetection.id) {
+//                    case 20:
+//                        DecodeTeleV1.colorID = 20;
                     case 21:
                         telemetry.addLine("GPP");
                         break;
@@ -106,6 +117,8 @@ public class DecodeAutoV1 extends LinearOpMode {
                     case 23:
                         telemetry.addLine("PPG");
                         break;
+//                    case 24:
+//                        DecodeTeleV1.colorID = 24;
                 }
             }
             myTimer.reset();
@@ -115,8 +128,11 @@ public class DecodeAutoV1 extends LinearOpMode {
                     if (currentDetections.isEmpty()) {
                         continue;
                     }
-//                    currentDetection = findCornerAprilTags(currentDetections);
-                    currentDetection = currentDetections.get(0);
+                    currentDetection = findCornerAprilTags(currentDetections);
+                    if(currentDetection.id <= 23 && currentDetection.id >= 21) {
+                        continue;
+                    }
+//                    currentDetection = currentDetections.get(0);
                     telemetry.addData("Updating X... ", currentDetection.robotPose.getPosition().x);
                     totalRobotX.add(currentDetection.robotPose.getPosition().x);
                     telemetry.addData("Updating Y...", currentDetection.robotPose.getPosition().y);
@@ -135,46 +151,87 @@ public class DecodeAutoV1 extends LinearOpMode {
         //------------------------------------------------ROADRUNNER FIRST TRAJECTORY-------------------------------------------------------------
         //backup in case no apriltag was detected
         if(startpose == null) {
-            startpose = new Pose2d(66, -24, Math.toRadians(180));
+            startpose = new Pose2d(-56 + 6.36, 56 - 6.36, Math.toRadians(135));
         }
-        drive = new MecanumDrive(hardwareMap, startpose);
+        startpose = new Pose2d(-56 + 6.36, 56 - 6.36, Math.toRadians(135));
+        drive.localizer.setPose(startpose);
 
         TrajectoryActionBuilder PreloadTraj = drive.actionBuilder(startpose)
-                .splineToLinearHeading(new Pose2d(-21,-15,Math.toRadians(225)),Math.toRadians(180));
+                .splineToConstantHeading(new Vector2d(-12,12),Math.toRadians(315));
         telemetry.addData("FinalPoseX",startpose.position.x);
         telemetry.addData("FinalPoseY",startpose.position.y);
         telemetry.addData("FinalYaw", startpose.heading.log());
         telemetry.update();
-
         waitForStart();
         //----------------------------------------------------------------RUN CODE------------------------------------------------------------------
         if(opModeIsActive()) {
             Actions.runBlocking(PreloadTraj.build());
-            GreenWheel1.setVelocity(3000);
-            GreenWheel2.setVelocity(3000);
-            for(int i = 0; i < 3 && !isStopRequested(); i++) {
-                Kicker.setPosition(0);
-                myTimer.reset();
-                while(myTimer.milliseconds() < 1000 && !isStopRequested()) {
+            launchThreeFar();
+            pause(500);
+            TrajectoryActionBuilder firstSet = PreloadTraj.fresh()
+                    .splineToLinearHeading(new Pose2d(-12,30,Math.toRadians(270)),Math.toRadians(90));
 
-                }
-                Kicker.setPosition(0.3);
-                myTimer.reset();
-                while(myTimer.milliseconds() < 1000 && !isStopRequested()) {
+            Actions.runBlocking(firstSet.build());
+            IntakeMotor.setPower(0.75);
+            Actions.runBlocking(firstSet.fresh().setReversed(true).lineToY(48, new TranslationalVelConstraint(25)).build());
+            IntakeMotor.setPower(0);
+            Actions.runBlocking(
+                    drive.actionBuilder(drive.localizer.getPose())
+                            .splineToLinearHeading(new Pose2d(-12,12,Math.toRadians(135)), Math.toRadians(135))
+                            .build()
+            );
 
-                }
-                Kicker.setPosition(0);
-            }
-            GreenWheel1.setVelocity(0);
-            GreenWheel2.setVelocity(0);
+            launchThreeFar();
+
+            TrajectoryActionBuilder secondSet = drive.actionBuilder(drive.localizer.getPose())
+                    .splineToLinearHeading(new Pose2d(12,30,Math.toRadians(270)),Math.toRadians(90));
+            Actions.runBlocking(secondSet.build());
+            IntakeMotor.setPower(0.75);
+            Actions.runBlocking(drive.actionBuilder(drive.localizer.getPose()).setReversed(true).lineToY(48, new TranslationalVelConstraint(25)).build());
+            IntakeMotor.setPower(0);
+            Actions.runBlocking(
+                    drive.actionBuilder(drive.localizer.getPose())
+                            .splineToLinearHeading(new Pose2d(-12,12,Math.toRadians(135)), Math.toRadians(135))
+                            .build()
+            );
+
+            launchThreeFar();
+            Actions.runBlocking(drive.actionBuilder(drive.localizer.getPose()).splineToConstantHeading(new Vector2d(0,16),Math.toRadians(90)).build());
         }
+    }
+
+    private void launchThreeFar() {
+        GreenWheel1.setVelocity(maxVelocity * 0.28);
+        GreenWheel2.setVelocity(maxVelocity * 0.28);
+        for(int i = 0; i < 2 && !isStopRequested(); i++) {
+            Kicker.setPosition(0);
+            pause(1000);
+            myTimer.reset();
+            while(myTimer.milliseconds() < 500) {
+                Kicker.setPosition(0.7);
+            }
+            pause(1000);
+            Kicker.setPosition(0);
+        }
+        myTimer.reset();
+        IntakeMotor.setPower(0.5);
+        pause(500);
+        IntakeMotor.setPower(0);
+        myTimer.reset();
+        while(myTimer.milliseconds() < 500) {
+            Kicker.setPosition(0.7);
+        }
+        pause(1000);
+        Kicker.setPosition(0);
+        GreenWheel1.setVelocity(0);
+        GreenWheel2.setVelocity(0);
     }
 
     private void initAprilTag() {
         // Create the AprilTag processor by using a builder.
         //TODO: Adjust camera pose to match reality
         aprilTag = new AprilTagProcessor.Builder()
-                .setCameraPose(new Position(DistanceUnit.INCH,0.75,7.5,6.0,0),new YawPitchRollAngles(AngleUnit.DEGREES,0,-90,0,0))
+                .setCameraPose(new Position(DistanceUnit.INCH,0,0,14.0,0),new YawPitchRollAngles(AngleUnit.DEGREES,0,-90,0,0))
                 .build();
 
         // Create the WEBCAM vision portal by using a builder.
@@ -235,5 +292,12 @@ public class DecodeAutoV1 extends LinearOpMode {
             total = total + value;
         }
         return total / values.size();
+    }
+
+    private void pause(int milliseconds) {
+        myTimer.reset();
+        while(myTimer.milliseconds() < milliseconds && !isStopRequested()) {
+
+        }
     }
 }
