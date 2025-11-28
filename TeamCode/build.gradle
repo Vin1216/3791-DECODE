@@ -10,6 +10,7 @@
 
 
 // Custom definitions may go here
+//PART OF SLOTH
 buildscript {
     repositories {
         mavenCentral()
@@ -50,16 +51,19 @@ repositories {
 dependencies {
     implementation project(':FtcRobotController')
 
-    implementation ("com.acmerobotics.roadrunner:ftc:0.1.25"){
+    implementation ("com.acmerobotics.roadrunner:ftc:0.1.25")
+            {
         exclude group: "com.acmerobotics.dashboard"
     }
-    implementation ("com.acmerobotics.roadrunner:core:1.0.1"){
+    implementation ("com.acmerobotics.roadrunner:core:1.0.1")
+            {
         exclude group: "com.acmerobotics.dashboard"
     }
-    implementation ("com.acmerobotics.roadrunner:actions:1.0.1"){
+    implementation ("com.acmerobotics.roadrunner:actions:1.0.1")
+            {
         exclude group: "com.acmerobotics.dashboard"
     }
-
+//    implementation("com.acmerobotics.dashboard:dashboard:0.5.1")
     implementation("com.acmerobotics.slothboard:dashboard:0.2.4+0.4.17")
 }
 
