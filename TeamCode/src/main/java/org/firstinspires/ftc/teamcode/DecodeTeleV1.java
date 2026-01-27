@@ -3,10 +3,10 @@ package org.firstinspires.ftc.teamcode;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
+import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -22,13 +22,13 @@ import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 @TeleOp(name = "DecodeTeleOpV1")
 public class DecodeTeleV1 extends LinearOpMode {
+    boolean flywheelsActive = false;
 
     public int colorID = 20;
 
@@ -48,12 +48,15 @@ public class DecodeTeleV1 extends LinearOpMode {
     AprilTagDetection currentDetection;
 
 
-    public long exposure = (long)200;
+    public long exposure = (long)500;
     public int gain = 200;
 
     private ElapsedTime myTimer = new ElapsedTime();
+    private ElapsedTime loopTime = new ElapsedTime();
 
+    private double autoAimAdjustmentAngle;
 
+    DcMotorEx motor;
 
     /**
      * Describe this function...
@@ -103,7 +106,7 @@ public class DecodeTeleV1 extends LinearOpMode {
         double Reverse = -1;
         double SlowMode = 1;
         boolean AutoAim = false;
-        double velocity = 1800;
+        double velocity = 840;
         double maxVelocity = 2800;
 
         boolean detectAprilTagsInit = true;
@@ -132,102 +135,105 @@ public class DecodeTeleV1 extends LinearOpMode {
 
         //---------------------------------------------SETUP PROMPTS------------------------------------------------------------------------
         // tbh this is kinda useless but hey it looks cool
-        while(!isStopRequested()) {
-            telemetry.addLine("Wot color");
-            telemetry.addLine("Blue                  Red");
-            if(colorID == 20) {
-                telemetry.addLine("  ^");
-            }
-            else {
-                telemetry.addLine("                               ^");
-            }
-            telemetry.update();
+//        while(!isStopRequested()) {
+//            telemetry.addLine("Wot color");
+//            telemetry.addLine("Blue                  Red");
+//            if(colorID == 20) {
+//                telemetry.addLine("  ^");
+//            }
+//            else {
+//                telemetry.addLine("                               ^");
+//            }
+//            telemetry.update();
+//
+//            if(gamepad1.dpadLeftWasPressed() && colorID == 24) {
+//                colorID = 20;
+//            }
+//            else if(gamepad1.dpadRightWasPressed() && colorID == 20) {
+//                colorID = 24;
+//            }
+//
+//            if(gamepad1.aWasPressed()) {
+//                break;
+//            }
+////            sleep(20);
+//        }
 
-            if(gamepad1.dpadLeftWasPressed() && colorID == 24) {
-                colorID = 20;
-            }
-            else if(gamepad1.dpadRightWasPressed() && colorID == 20) {
-                colorID = 24;
-            }
-
-            if(gamepad1.aWasPressed()) {
-                break;
-            }
-//            sleep(20);
-        }
-
-        while(!isStopRequested()) {
-            telemetry.addLine("Find AprilTag rn?????");
-            telemetry.addLine("A for yes          B for no");
-            telemetry.update();
-
-            if(gamepad1.aWasPressed()) {
-                break;
-            }
-            else if(gamepad1.bWasPressed()) {
-                detectAprilTagsInit = false;
-                break;
-            }
-//            sleep(20);
-        }
+//        while(!isStopRequested()) {
+//            telemetry.addLine("Find AprilTag rn?????");
+//            telemetry.addLine("A for yes          B for no");
+//            telemetry.update();
+//
+//            if(gamepad1.aWasPressed()) {
+//                break;
+//            }
+//            else if(gamepad1.bWasPressed()) {
+//                detectAprilTagsInit = false;
+//                break;
+//            }
+////            sleep(20);
+//        }
 
         //------------------------------------------------APRILTAG DETECTION & LOCALIZATION-----------------------------------------------------
-        List<Double> totalRobotX = new ArrayList<>();
-        List<Double> totalRobotY = new ArrayList<>();
-        List<Double> totalRobotYaw = new ArrayList<>();
-        currentDetections = aprilTag.getDetections();
-        int numTags;
-        if(detectAprilTagsInit) {
-            numTags = currentDetections.size();
-        }
-        else {
-            numTags = -1;
-        }
-
-        myTimer.reset();
-        while(numTags == 0 && myTimer.seconds() < 3 && !isStopRequested()) {
-            currentDetections = aprilTag.getDetections();
-            numTags = currentDetections.size();
-        }
-
-        if (numTags > 0) {
-            currentDetection = findCornerAprilTags(currentDetections);
-
-            if (!isStopRequested()) {
-                telemetry.addData("Tag", "####### %d Detected  ######", currentDetections.size());
-                telemetry.addData("ID", currentDetection.id);
-                telemetry.addData("RobotPose", currentDetection.robotPose);
-                telemetry.addData("FTCPose", currentDetection.ftcPose);
-                totalRobotX.add(currentDetection.robotPose.getPosition().x);
-                totalRobotY.add(currentDetection.robotPose.getPosition().y);
-            }
-            myTimer.reset();
-            while (myTimer.seconds() < 2 && !isStopRequested()) {
-                currentDetections = aprilTag.getFreshDetections();
-                if (currentDetections != null) {
-                    if (currentDetections.isEmpty()) {
-                        continue;
-                    }
-                    currentDetection = findCornerAprilTags(currentDetections);
-//                    currentDetection = currentDetections.get(0);
-                    telemetry.addData("Updating X... ", currentDetection.robotPose.getPosition().x);
-                    totalRobotX.add(currentDetection.robotPose.getPosition().x);
-                    telemetry.addData("Updating Y...", currentDetection.robotPose.getPosition().y);
-                    totalRobotY.add(currentDetection.robotPose.getPosition().y);
-                    telemetry.addData("Updating Yaw...", currentDetection.robotPose.getOrientation().getYaw(AngleUnit.DEGREES));
-                    totalRobotYaw.add(currentDetection.robotPose.getOrientation().getYaw());
-                    telemetry.update();
-                }
-            }
-            startpose = new Pose2d(mean(totalRobotX), mean(totalRobotY), getAndConvertAprilTagYaw(currentDetection,mean(totalRobotYaw)));
-
-        } else {
-            telemetry.addData("Tag", "----------- none - ----------");
-        }
+          int numTags;
+//        List<Double> totalRobotX = new ArrayList<>();
+//        List<Double> totalRobotY = new ArrayList<>();
+//        List<Double> totalRobotYaw = new ArrayList<>();
+//        currentDetections = aprilTag.getDetections();
+//        if(detectAprilTagsInit) {
+//            numTags = currentDetections.size();
+//        }
+//        else {
+//            numTags = -1;
+//        }
+//
+//        myTimer.reset();
+//        while(numTags == 0 && myTimer.seconds() < 3 && !isStopRequested()) {
+//            currentDetections = aprilTag.getDetections();
+//            numTags = currentDetections.size();
+//        }
+//
+//        if (numTags > 0) {
+//            currentDetection = findCornerAprilTags(currentDetections);
+//
+//            if (!isStopRequested()) {
+//                telemetry.addData("Tag", "####### %d Detected  ######", currentDetections.size());
+//                telemetry.addData("ID", currentDetection.id);
+//                telemetry.addData("RobotPose", currentDetection.robotPose);
+//                telemetry.addData("FTCPose", currentDetection.ftcPose);
+//                totalRobotX.add(currentDetection.robotPose.getPosition().x);
+//                totalRobotY.add(currentDetection.robotPose.getPosition().y);
+//            }
+//            myTimer.reset();
+//            while (myTimer.seconds() < 2 && !isStopRequested()) {
+//                currentDetections = aprilTag.getFreshDetections();
+//                if (currentDetections != null) {
+//                    if (currentDetections.isEmpty()) {
+//                        continue;
+//                    }
+//                    currentDetection = findCornerAprilTags(currentDetections);
+//                    if(currentDetection.id != 20 && currentDetection.id != 24) {
+//                        continue;
+//                    }
+////                    currentDetection = currentDetections.get(0);
+//                    telemetry.addData("Updating X... ", currentDetection.robotPose.getPosition().x);
+//                    totalRobotX.add(currentDetection.robotPose.getPosition().x);
+//                    telemetry.addData("Updating Y...", currentDetection.robotPose.getPosition().y);
+//                    totalRobotY.add(currentDetection.robotPose.getPosition().y);
+//                    telemetry.addData("Updating Yaw...", currentDetection.robotPose.getOrientation().getYaw(AngleUnit.DEGREES));
+//                    totalRobotYaw.add(currentDetection.robotPose.getOrientation().getYaw());
+//                    telemetry.update();
+//                }
+//            }
+//            startpose = new Pose2d(mean(totalRobotX), mean(totalRobotY), getAndConvertAprilTagYaw(currentDetection,mean(totalRobotYaw)));
+//
+//        } else {
+//            telemetry.addData("Tag", "----------- none - ----------");
+//        }
 
         if(startpose == null) {
             //TODO: Add the estimated end of the autonomous
-            startpose = new Pose2d(66, -24, Math.toRadians(180));
+            startpose = new Pose2d(0, 0, Math.toRadians(180));
         }
         drive.localizer.setPose(startpose);
 
@@ -242,26 +248,29 @@ public class DecodeTeleV1 extends LinearOpMode {
         FrontRight = drive.rightFront;
         RearLeft = drive.leftBack;
         RearRight = drive.rightBack;
-        flywheel1 = hardwareMap.get(DcMotorEx.class, "flywheel1");
-        flywheel2 = hardwareMap.get(DcMotorEx.class, "flywheel2");
+//        flywheel1 = hardwareMap.get(DcMotorEx.class, "flywheel1");
+//        flywheel2 = hardwareMap.get(DcMotorEx.class, "flywheel2");
         IntakeMotor = hardwareMap.get(DcMotorEx.class, "IntakeMotor");
         Kicker = hardwareMap.get(Servo.class, "wshoot");
 
-        flywheel1.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-        flywheel2.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-        flywheel1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        flywheel2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        Reversing();
+//        flywheel1.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+//        flywheel2.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+//        flywheel1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//        flywheel2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//        Reversing();
+
+        FlywheelCustomPID flywheels = new FlywheelCustomPID(hardwareMap);
 
         waitForStart();
         if (opModeIsActive()) {
             while (opModeIsActive()) {
+                loopTime.reset();
                 currentPose = drive.localizer.update();
 
-                FrontLeft.setPower(SlowMode * (Reverse * (gamepad1.left_stick_y - (gamepad1.left_stick_x + (gamepad1.right_trigger - gamepad1.left_trigger))) + (gamepad1.right_stick_x * 0.4)));
-                FrontRight.setPower(SlowMode * (Reverse * (gamepad1.left_stick_y + (gamepad1.left_stick_x + (gamepad1.right_trigger - gamepad1.left_trigger))) - (gamepad1.right_stick_x * 0.4)));
-                RearLeft.setPower(SlowMode * (Reverse * (gamepad1.left_stick_y + (gamepad1.left_stick_x + (gamepad1.right_trigger - gamepad1.left_trigger))) + (gamepad1.right_stick_x * 0.4)));
-                RearRight.setPower(SlowMode * (Reverse * (gamepad1.left_stick_y - (gamepad1.left_stick_x + (gamepad1.right_trigger - gamepad1.left_trigger))) - (gamepad1.right_stick_x * 0.4)));
+                FrontLeft.setPower(SlowMode * (Reverse * (gamepad1.left_stick_y - (gamepad1.left_stick_x + (gamepad1.right_trigger - gamepad1.left_trigger)) * 0.75) + (gamepad1.right_stick_x * 0.6)));
+                FrontRight.setPower(SlowMode * (Reverse * (gamepad1.left_stick_y + (gamepad1.left_stick_x + (gamepad1.right_trigger - gamepad1.left_trigger)) * 0.75) - (gamepad1.right_stick_x * 0.6)));
+                RearLeft.setPower(SlowMode * (Reverse * (gamepad1.left_stick_y + (gamepad1.left_stick_x + (gamepad1.right_trigger - gamepad1.left_trigger)) * 0.75) + (gamepad1.right_stick_x * 0.6)));
+                RearRight.setPower(SlowMode * (Reverse * (gamepad1.left_stick_y - (gamepad1.left_stick_x + (gamepad1.right_trigger - gamepad1.left_trigger)) * 0.75) - (gamepad1.right_stick_x * 0.6)));
                 if (gamepad1.right_bumper || gamepad1.b || gamepad1.a || gamepad2.x || gamepad2.y) {
                     if(gamepad1.right_bumper || gamepad1.a || gamepad2.y) {
                         IntakeMotor.setPower(1);
@@ -273,124 +282,134 @@ public class DecodeTeleV1 extends LinearOpMode {
                 else {
                     IntakeMotor.setPower(0);
                 }
-                if(gamepad1.dpadUpWasPressed()) {
+                if(gamepad1.dpadUpWasPressed() || gamepad2.rightBumperWasPressed()) {
                     Kicker.setPosition(0.7);
                 }
-                if(gamepad1.dpadDownWasPressed()) {
+                if(gamepad1.dpadDownWasPressed() || gamepad2.right_trigger > 0) {
                     Kicker.setPosition(0);
                 }
                 if (gamepad1.xWasPressed()) {
-                    flywheel1.setVelocity(0);
-                    flywheel2.setVelocity(0);
+                    flywheels.setVelocity(0);
+                    flywheelsActive = false;
                     Reverse = 1;
                 }
                 if (gamepad1.yWasPressed()) {
                     Reverse = -1;
                 }
                 if (gamepad1.dpadRightWasPressed()) {
-                    SlowMode = 0.4;
+                    SlowMode = 0.75;
                 }
                 if (gamepad1.dpadLeftWasPressed()) {
                     SlowMode = 1;
                 }
                 if (gamepad2.leftBumperWasPressed()) {
-                    flywheel1.setVelocity(velocity);
-                    flywheel2.setVelocity(velocity);
+                    flywheelsActive = true;
                 }
                 if (gamepad2.left_trigger > 0) {
-                    flywheel1.setVelocity(0);
-                    flywheel2.setVelocity(0);
+                    flywheels.setVelocity(0);
+                    flywheelsActive = false;
+                }
+                if(flywheelsActive) {
+                    flywheels.setVelocity(velocity);
+                }
+                else if(flywheels.flywheel1.getVelocity() != 0) {
+                    flywheels.setVelocity(0);
                 }
                 if(gamepad2.dpadUpWasPressed()) {
-                    velocity = maxVelocity * 0.55;
+                    velocity = 1120;
                 }
                 if(gamepad2.dpadRightWasPressed()) {
-                    velocity = maxVelocity * 0.44;
+                    velocity = 1040;
                 }
                 if(gamepad2.dpadDownWasPressed()) {
-                    velocity = maxVelocity * 0.3;
+                    velocity = 940;
                 }
-                if(gamepad2.right_trigger > 0) {
-                    visionPortal.stopStreaming();
-                }
-                if(gamepad2.rightBumperWasPressed()) {
-                    visionPortal.resumeStreaming();
-                }
+//                if(gamepad2.right_trigger > 0) {
+//                    visionPortal.stopStreaming();
+//                }
+//                if(gamepad2.rightBumperWasPressed()) {
+//                    visionPortal.resumeStreaming();
+//                }
                 if(gamepad2.aWasPressed()) {
-                    velocity -= 50;
+                    velocity -= 20;
                 }
                 if(gamepad2.bWasPressed()) {
-                    velocity += 50;
+                    velocity += 20;
                 }
-                if (visionPortal.getCameraState() == VisionPortal.CameraState.STREAMING) {
+                if (visionPortal.getCameraState() == VisionPortal.CameraState.STREAMING && currentPose.linearVel.equals(new Vector2d(0,0)) && currentPose.angVel == 0) {
                     telemetry.addLine("Camera: ON");
-                    currentDetections = aprilTag.getFreshDetections();
-                    if(currentDetections != null) {
-                        numTags = currentDetections.size();
-                        if (numTags > 0) {
-                            currentDetection = findCornerAprilTags(currentDetections);
-                            if (currentDetection.id == colorID) {
-                                AutoAim = true;
-                                telemetry.addLine("AutoAim ACTIVE");
-                            }
-                            else {
-                                AutoAim = false;
-                                telemetry.addLine("AutoAim NOOOOOOOOOOOOOOO");
-                            }
+                    currentDetections = aprilTag.getDetections();
+                    numTags = currentDetections.size();
+                    if (numTags > 0) {
+                        currentDetection = findCornerAprilTags(currentDetections);
+                        if (currentDetection.id == 20 || currentDetection.id == 24) {
+                            colorID = currentDetection.id;
+                            drive.localizer.setPose(new Pose2d(currentDetection.robotPose.getPosition().x,
+                                    currentDetection.robotPose.getPosition().y,
+                                    Math.toRadians(getAndConvertAprilTagYaw(currentDetection, currentDetection.robotPose.getOrientation().getYaw()))));
+                            AutoAim = true;
+                            telemetry.addLine("AutoAim ACTIVE");
+                        } else {
+                            AutoAim = false;
+                            telemetry.addLine("AutoAim NOOOOOOOOOOOOOOO");
                         }
                     }
                     else {
-                            AutoAim = false;
-                            telemetry.addLine("AutoAim NOOOOOOOOOOOOOOO");
+                        AutoAim = false;
+                        telemetry.addLine("AutoAim NOOOOOOOOOOOOOOO");
                     }
                 }
                 else {
+                    if(visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING) {
+                        telemetry.addLine("Camera: OFF");
+                    }
+                    else {
+                        telemetry.addLine("Camera: OFF");
+                    }
                     AutoAim = false;
-                    telemetry.addLine("Camera: OFF");
                     telemetry.addLine("AutoAim NOOOOOOOOOOOOOOO");
                 }
-                if(gamepad2.yWasPressed()) {
-                    telemetry.addLine("UPDATING POSE FROM LAST DETECTED APRILTAG");
-                    telemetry.update();
-                    drive.localizer.setPose(new Pose2d(currentDetection.robotPose.getPosition().x,
-                            currentDetection.robotPose.getPosition().y,
-                            Math.toRadians(getAndConvertAprilTagYaw(currentDetection, currentDetection.robotPose.getOrientation().getYaw()))));
-                }
-                if(gamepad1.left_bumper && AutoAim) {
-                    traj = drive.actionBuilder(drive.localizer.getPose())
-                                .turn(Math.toRadians(currentDetection.ftcPose.bearing) * 0.9);
-//                    if(colorID == 20) {
-//                        traj = drive.actionBuilder(drive.localizer.getPose())
-//                                .turn(Math.toRadians(currentDetection.ftcPose.bearing)
-//                                                + getAutoAimAdjustmentAngle(
-//                                                currentDetection.ftcPose.range,
-//                                                Math.sqrt(Math.pow(-72 - drive.localizer.getPose().position.x, 2) + Math.pow(-72 - drive.localizer.getPose().position.y, 2))
-//                                        )
-//                                );
-//                        Actions.runBlocking(traj.build());
-//                    }
-//                    else {
-//                        traj = drive.actionBuilder(drive.localizer.getPose())
-//                                .turn(Math.toRadians(currentDetection.ftcPose.bearing)
-//                                                + getAutoAimAdjustmentAngle(
-//                                                currentDetection.ftcPose.range,
-//                                                Math.sqrt(Math.pow(-72 - drive.localizer.getPose().position.x, 2) + Math.pow(72 - drive.localizer.getPose().position.y, 2))
-//                                        )
-//                                );
-//                        Actions.runBlocking(traj.build());
-//                    }
-                    Actions.runBlocking(traj.build());
+
+
+//                if(gamepad2.yWasPressed()) {
+//                    telemetry.addLine("UPDATING POSE FROM LAST DETECTED APRILTAG");
+//                    telemetry.update();
+//                    drive.localizer.setPose(new Pose2d(currentDetection.robotPose.getPosition().x,
+//                            currentDetection.robotPose.getPosition().y,
+//                            Math.toRadians(getAndConvertAprilTagYaw(currentDetection, currentDetection.robotPose.getOrientation().getYaw()))));
+//                }
+//                if(currentPose.linearVel.equals(0))
+                if(gamepad1.left_bumper && AutoAim && (currentDetection != null)) {
+//                    traj = drive.actionBuilder(drive.localizer.getPose())
+//                                .turn(Math.toRadians(currentDetection.ftcPose.bearing) * 0.95);
+                    if(colorID == 20) {
+                        autoAimAdjustmentAngle = getAutoAimAdjustmentAngle(
+                                currentDetection.ftcPose.range,
+                                Math.sqrt(Math.pow(-72 - drive.localizer.getPose().position.x, 2) + Math.pow(-72 - drive.localizer.getPose().position.y, 2))
+                        );
+                    }
+                    else {
+                        autoAimAdjustmentAngle = getAutoAimAdjustmentAngle(
+                                currentDetection.ftcPose.range,
+                                Math.sqrt(Math.pow(-72 - drive.localizer.getPose().position.x, 2) + Math.pow(72 - drive.localizer.getPose().position.y, 2))
+                        );
+                    }
+                    if(!Double.isNaN(autoAimAdjustmentAngle)) {
+                        traj = drive.actionBuilder(drive.localizer.getPose()).turn(Math.toRadians(currentDetection.ftcPose.bearing - autoAimAdjustmentAngle));
+                        Actions.runBlocking(traj.build());
+                    }
+//                    telemetry.addData("autoAimAdjustmentAngle", autoAimAdjustmentAngle);
                 }
 
 //                velocity = currentDetection.ftcPose.range;
-                if(currentDetection != null) {
+                if(!currentDetections.isEmpty()) {
                     telemetry.addData("Last Detected AprilTag: ", currentDetection.id);
                 }
                 telemetry.addLine("-------------------POSE DATA---------------------");
                 telemetry.addData("PoseX: ", drive.localizer.getPose().position.x);
                 telemetry.addData("PoseY: ", drive.localizer.getPose().position.y);
                 telemetry.addData("Rotation: ", Math.toDegrees(drive.localizer.getPose().heading.log()));
-                if(currentDetection != null) {
+                if(!currentDetections.isEmpty()) {
                     telemetry.addData("Bearing: ", currentDetection.ftcPose.bearing);
                     telemetry.addData("Range: ", currentDetection.ftcPose.range);
                 }
@@ -406,10 +425,12 @@ public class DecodeTeleV1 extends LinearOpMode {
                 telemetry.addLine("-----------------SHOOTER STUFF--------------------");
                 telemetry.addData("Target Velocity: ", velocity);
                 telemetry.addLine(String.format(Locale.US, "Target Velocity %%: %.2f%%",(velocity / maxVelocity * 100) ));
-                telemetry.addData("Flywheel 1: ", flywheel1.getVelocity());
-                telemetry.addData("Flywheel 2: ", flywheel2.getVelocity());
-                telemetry.addLine(String.format(Locale.US,"Flywheel 1 %%: %.2f%%", (flywheel1.getVelocity() / maxVelocity * 100)));
-                telemetry.addLine(String.format(Locale.US,"Flywheel 2 %%: %.2f%%", (flywheel2.getVelocity() / maxVelocity * 100)));
+                telemetry.addData("Flywheel 1: ", flywheels.flywheel1.getVelocity());
+                telemetry.addData("Flywheel 2: ", flywheels.flywheel2.getVelocity());
+                telemetry.addLine(String.format(Locale.US,"Flywheel 1 %%: %.2f%%", (flywheels.flywheel1.getVelocity() / maxVelocity * 100)));
+                telemetry.addLine(String.format(Locale.US,"Flywheel 2 %%: %.2f%%", (flywheels.flywheel2.getVelocity() / maxVelocity * 100)));
+                telemetry.addLine("--------------------------------------------------");
+                telemetry.addData("Loop Time (ms): ", loopTime.milliseconds());
                 telemetry.update();
             }
         }
@@ -485,11 +506,11 @@ public class DecodeTeleV1 extends LinearOpMode {
         double cornerDistanceSquared = Math.pow(cornerDistance, 2);
         double aprilTagtoCornerSquared = 512.0;
         double angle = Math.acos((aprilTagtoCornerSquared - aprilTagDistanceSquared - cornerDistanceSquared) / (-2 * aprilTagDistance * cornerDistance));
-        if(angle > 0) {
-            return angle * 0.5;
-        }
-        else {
-            return 0;
-        }
+        return angle * 0.5;
+//        if(angle > 0) {
+//        }
+//        else {
+//            return 0;
+//        }
     }
 }

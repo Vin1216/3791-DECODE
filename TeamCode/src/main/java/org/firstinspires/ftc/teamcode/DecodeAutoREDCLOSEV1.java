@@ -8,7 +8,6 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -24,7 +23,6 @@ import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -42,21 +40,25 @@ public class DecodeAutoREDCLOSEV1 extends LinearOpMode {
     DcMotorEx IntakeMotor;
     DcMotorEx GreenWheel1;
     DcMotorEx GreenWheel2;
+    FlywheelCustomPID flywheels;
     Servo Kicker;
 
     double maxVelocity = 2800;
+    double multiplier = 1;
 
     @Override
     public void runOpMode() {
+        int numTags = 0;
         PoseVelocity2d currentPose;
         //------------------------------------------------ACTUATORS & OTHER INITIALIZATION SETUP---------------------------------------
         IntakeMotor = hardwareMap.get(DcMotorEx.class, "IntakeMotor");
-        GreenWheel1 = hardwareMap.get(DcMotorEx.class,"flywheel1");
-        GreenWheel2 = hardwareMap.get(DcMotorEx.class,"flywheel2");
-        GreenWheel1.setDirection(DcMotorEx.Direction.REVERSE);
-
-        GreenWheel1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        GreenWheel2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//        GreenWheel1 = hardwareMap.get(DcMotorEx.class,"flywheel1");
+//        GreenWheel2 = hardwareMap.get(DcMotorEx.class,"flywheel2");
+//        GreenWheel1.setDirection(DcMotorEx.Direction.REVERSE);
+//
+//        GreenWheel1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//        GreenWheel2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        flywheels = new FlywheelCustomPID(hardwareMap);
 
         Kicker = hardwareMap.get(Servo.class, "wshoot");
 
@@ -83,70 +85,70 @@ public class DecodeAutoREDCLOSEV1 extends LinearOpMode {
         gainControl.setGain(gain);
 
         //------------------------------------------------APRILTAG DETECTION & LOCALIZATION-----------------------------------------------------
-        List<Double> totalRobotX = new ArrayList<>();
-        List<Double> totalRobotY = new ArrayList<>();
-        List<Double> totalRobotYaw = new ArrayList<>();
-        currentDetections = aprilTag.getDetections();
-        int numTags = currentDetections.size();
-        myTimer.reset();
-        while(numTags == 0 && myTimer.seconds() < 5 && !isStopRequested()) {
-            currentDetections = aprilTag.getDetections();
-            numTags = currentDetections.size();
-        }
-
-        if (numTags > 0) {
-            AprilTagDetection currentDetection = findCornerAprilTags(currentDetections);
-
-            if (!isStopRequested()) {
-                telemetry.addData("Tag", "####### %d Detected  ######", currentDetections.size());
-                telemetry.addData("ID", currentDetection.id);
-                telemetry.addData("RobotPose", currentDetection.robotPose);
-                telemetry.addData("FTCPose", currentDetection.ftcPose);
-                totalRobotX.add(currentDetection.robotPose.getPosition().x);
-                totalRobotY.add(currentDetection.robotPose.getPosition().y);
-
-                switch (currentDetection.id) {
-//                    case 20:
-//                        DecodeTeleV1.colorID = 20;
-                    case 21:
-                        telemetry.addLine("GPP");
-                        break;
-                    case 22:
-                        telemetry.addLine("PGP");
-                        break;
-                    case 23:
-                        telemetry.addLine("PPG");
-                        break;
-//                    case 24:
-//                        DecodeTeleV1.colorID = 24;
-                }
-            }
-            myTimer.reset();
-            while (myTimer.seconds() < 3 && !isStopRequested()) {
-                currentDetections = aprilTag.getFreshDetections();
-                if (currentDetections != null) {
-                    if (currentDetections.isEmpty()) {
-                        continue;
-                    }
-                    currentDetection = findCornerAprilTags(currentDetections);
-                    if(currentDetection.id <= 23 && currentDetection.id >= 21) {
-                        continue;
-                    }
-//                    currentDetection = currentDetections.get(0);
-                    telemetry.addData("Updating X... ", currentDetection.robotPose.getPosition().x);
-                    totalRobotX.add(currentDetection.robotPose.getPosition().x);
-                    telemetry.addData("Updating Y...", currentDetection.robotPose.getPosition().y);
-                    totalRobotY.add(currentDetection.robotPose.getPosition().y);
-                    telemetry.addData("Updating Yaw...", currentDetection.robotPose.getOrientation().getYaw());
-                    totalRobotYaw.add(currentDetection.robotPose.getOrientation().getYaw());
-                    telemetry.update();
-                }
-            }
-            startpose = new Pose2d(mean(totalRobotX), mean(totalRobotY), getAndConvertAprilTagYaw(currentDetection,mean(totalRobotYaw)));
-
-        } else {
-            telemetry.addData("Tag", "----------- none - ----------");
-        }
+//        List<Double> totalRobotX = new ArrayList<>();
+//        List<Double> totalRobotY = new ArrayList<>();
+//        List<Double> totalRobotYaw = new ArrayList<>();
+//        currentDetections = aprilTag.getDetections();
+//        int numTags = currentDetections.size();
+//        myTimer.reset();
+//        while(numTags == 0 && myTimer.seconds() < 5 && !isStopRequested()) {
+//            currentDetections = aprilTag.getDetections();
+//            numTags = currentDetections.size();
+//        }
+//
+//        if (numTags > 0) {
+//            AprilTagDetection currentDetection = findCornerAprilTags(currentDetections);
+//
+//            if (!isStopRequested()) {
+//                telemetry.addData("Tag", "####### %d Detected  ######", currentDetections.size());
+//                telemetry.addData("ID", currentDetection.id);
+//                telemetry.addData("RobotPose", currentDetection.robotPose);
+//                telemetry.addData("FTCPose", currentDetection.ftcPose);
+//                totalRobotX.add(currentDetection.robotPose.getPosition().x);
+//                totalRobotY.add(currentDetection.robotPose.getPosition().y);
+//
+//                switch (currentDetection.id) {
+////                    case 20:
+////                        DecodeTeleV1.colorID = 20;
+//                    case 21:
+//                        telemetry.addLine("GPP");
+//                        break;
+//                    case 22:
+//                        telemetry.addLine("PGP");
+//                        break;
+//                    case 23:
+//                        telemetry.addLine("PPG");
+//                        break;
+////                    case 24:
+////                        DecodeTeleV1.colorID = 24;
+//                }
+//            }
+//            myTimer.reset();
+//            while (myTimer.seconds() < 3 && !isStopRequested()) {
+//                currentDetections = aprilTag.getFreshDetections();
+//                if (currentDetections != null) {
+//                    if (currentDetections.isEmpty()) {
+//                        continue;
+//                    }
+//                    currentDetection = findCornerAprilTags(currentDetections);
+//                    if(currentDetection.id <= 23 && currentDetection.id >= 21) {
+//                        continue;
+//                    }
+////                    currentDetection = currentDetections.get(0);
+//                    telemetry.addData("Updating X... ", currentDetection.robotPose.getPosition().x);
+//                    totalRobotX.add(currentDetection.robotPose.getPosition().x);
+//                    telemetry.addData("Updating Y...", currentDetection.robotPose.getPosition().y);
+//                    totalRobotY.add(currentDetection.robotPose.getPosition().y);
+//                    telemetry.addData("Updating Yaw...", currentDetection.robotPose.getOrientation().getYaw());
+//                    totalRobotYaw.add(currentDetection.robotPose.getOrientation().getYaw());
+//                    telemetry.update();
+//                }
+//            }
+//            startpose = new Pose2d(mean(totalRobotX), mean(totalRobotY), getAndConvertAprilTagYaw(currentDetection,mean(totalRobotYaw)));
+//
+//        } else {
+//            telemetry.addData("Tag", "----------- none - ----------");
+//        }
 
         //------------------------------------------------ROADRUNNER FIRST TRAJECTORY-------------------------------------------------------------
         //backup in case no apriltag was detected
@@ -157,7 +159,7 @@ public class DecodeAutoREDCLOSEV1 extends LinearOpMode {
         drive.localizer.setPose(startpose);
 
         TrajectoryActionBuilder PreloadTraj = drive.actionBuilder(startpose)
-                .splineToConstantHeading(new Vector2d(-12,12),Math.toRadians(315));
+                .splineToConstantHeading(new Vector2d(-15,15),Math.toRadians(315));
         telemetry.addData("FinalPoseX",startpose.position.x);
         telemetry.addData("FinalPoseY",startpose.position.y);
         telemetry.addData("FinalYaw", startpose.heading.log());
@@ -167,64 +169,85 @@ public class DecodeAutoREDCLOSEV1 extends LinearOpMode {
         if(opModeIsActive()) {
             Actions.runBlocking(PreloadTraj.build());
             launchThreeFar();
-            pause(500);
             TrajectoryActionBuilder firstSet = PreloadTraj.fresh()
-                    .splineToLinearHeading(new Pose2d(-12,30,Math.toRadians(270)),Math.toRadians(90));
+                    .splineToLinearHeading(new Pose2d(-10,30,Math.toRadians(271)),Math.toRadians(90), new TranslationalVelConstraint(75));
 
             Actions.runBlocking(firstSet.build());
             IntakeMotor.setPower(0.75);
-            Actions.runBlocking(firstSet.fresh().setReversed(true).lineToY(48, new TranslationalVelConstraint(25)).build());
+            Actions.runBlocking(firstSet.fresh().setReversed(true).lineToY(56, new TranslationalVelConstraint(30)).build());
             IntakeMotor.setPower(0);
             Actions.runBlocking(
                     drive.actionBuilder(drive.localizer.getPose())
-                            .splineToLinearHeading(new Pose2d(-12,12,Math.toRadians(135)), Math.toRadians(135))
+                            .splineToLinearHeading(new Pose2d(-15,15,Math.toRadians(135)), Math.toRadians(135))
                             .build()
             );
 
             launchThreeFar();
 
             TrajectoryActionBuilder secondSet = drive.actionBuilder(drive.localizer.getPose())
-                    .splineToLinearHeading(new Pose2d(12,30,Math.toRadians(270)),Math.toRadians(90));
+                    .splineToLinearHeading(new Pose2d(14,30,Math.toRadians(270)),Math.toRadians(90));
             Actions.runBlocking(secondSet.build());
             IntakeMotor.setPower(0.75);
-            Actions.runBlocking(drive.actionBuilder(drive.localizer.getPose()).setReversed(true).lineToY(48, new TranslationalVelConstraint(25)).build());
+            Actions.runBlocking(drive.actionBuilder(drive.localizer.getPose()).setReversed(true).lineToY(66, new TranslationalVelConstraint(35)).build());
             IntakeMotor.setPower(0);
             Actions.runBlocking(
                     drive.actionBuilder(drive.localizer.getPose())
-                            .splineToLinearHeading(new Pose2d(-12,12,Math.toRadians(135)), Math.toRadians(135))
+                            .splineToLinearHeading(new Pose2d(-15,15,Math.toRadians(135)), Math.toRadians(135))
                             .build()
             );
-
             launchThreeFar();
-            Actions.runBlocking(drive.actionBuilder(drive.localizer.getPose()).splineToConstantHeading(new Vector2d(0,16),Math.toRadians(90)).build());
+
+
+            Actions.runBlocking(drive.actionBuilder(drive.localizer.getPose()).splineToConstantHeading(new Vector2d(6,24),Math.toRadians(90)).build());
         }
     }
 
     private void launchThreeFar() {
-        GreenWheel1.setVelocity(maxVelocity * 0.28);
-        GreenWheel2.setVelocity(maxVelocity * 0.28);
-        for(int i = 0; i < 2 && !isStopRequested(); i++) {
-            Kicker.setPosition(0);
-            pause(1000);
+        ElapsedTime targetTimer = new ElapsedTime();
+        double[] powers = {860 * multiplier,880 * multiplier,860 * multiplier};
+        double target;
+        boolean targetreached = false;
+
+        for(int i = 0; i < 3; i++) {
+            target = powers[i];
+
+//            GreenWheel1.setVelocity(maxVelocity * powers[i]);
+//            GreenWheel2.setVelocity(maxVelocity * powers[i]);
+            targetTimer.reset();
+            while(flywheels.flywheel1.getVelocity() != target && !isStopRequested() && targetTimer.milliseconds() <= 500) {
+                flywheels.setVelocity(target);
+                if(flywheels.flywheel1.getVelocity() == target && targetreached == false) {
+                    targetreached = true;
+                    targetTimer.reset();
+                }
+            }
             myTimer.reset();
-            while(myTimer.milliseconds() < 500) {
+            while(myTimer.milliseconds() < 100) {
+                Kicker.setPosition(0);
+            }
+            if(i >= 1) {
+                IntakeMotor.setPower(0.5);
+                pause(500);
+//                IntakeMotor.setPower(0);
+//                pause(500);
+            }
+            else {
+                pause(500);
+            }
+            myTimer.reset();
+            while(myTimer.milliseconds() < 100) {
                 Kicker.setPosition(0.7);
             }
-            pause(1000);
+            pause(250);
             Kicker.setPosition(0);
         }
-        myTimer.reset();
-        IntakeMotor.setPower(0.5);
-        pause(500);
         IntakeMotor.setPower(0);
-        myTimer.reset();
-        while(myTimer.milliseconds() < 500) {
-            Kicker.setPosition(0.7);
+        target = 0;
+        while(flywheels.flywheel1.getVelocity() != target && !isStopRequested()) {
+            flywheels.setVelocity(0);
         }
-        pause(1000);
-        Kicker.setPosition(0);
-        GreenWheel1.setVelocity(0);
-        GreenWheel2.setVelocity(0);
+//        GreenWheel1.setVelocity(0);
+//        GreenWheel2.setVelocity(0);
     }
 
     private void initAprilTag() {

@@ -8,12 +8,13 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
@@ -23,15 +24,21 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Autonomous
 public class DecodeAutoREDFARV1 extends LinearOpMode {
+    double[][] lookupTable = {
+            {65,},
+            {30,}
+    };
     private VisionPortal visionPortal = null;
     private AprilTagProcessor aprilTag;
 
     List<AprilTagDetection> currentDetections = null;
+    AprilTagDetection currentDetection;
 
-    public long exposure = (long)200;
+    public long exposure = (long)300;
     public int gain = 200;
     ElapsedTime myTimer = new ElapsedTime();
 
@@ -41,18 +48,20 @@ public class DecodeAutoREDFARV1 extends LinearOpMode {
     Servo Kicker;
 
     double maxVelocity = 2800;
+    FlywheelCustomPID flywheels;
 
     @Override
     public void runOpMode() {
         PoseVelocity2d currentPose;
         //------------------------------------------------ACTUATORS & OTHER INITIALIZATION SETUP---------------------------------------
         IntakeMotor = hardwareMap.get(DcMotorEx.class, "IntakeMotor");
-        GreenWheel1 = hardwareMap.get(DcMotorEx.class,"flywheel1");
-        GreenWheel2 = hardwareMap.get(DcMotorEx.class,"flywheel2");
-        GreenWheel1.setDirection(DcMotorEx.Direction.REVERSE);
-
-        GreenWheel1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        GreenWheel2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        flywheels = new FlywheelCustomPID(hardwareMap);
+//        GreenWheel1 = hardwareMap.get(DcMotorEx.class,"flywheel1");
+//        GreenWheel2 = hardwareMap.get(DcMotorEx.class,"flywheel2");
+//        GreenWheel1.setDirection(DcMotorEx.Direction.REVERSE);
+//
+//        GreenWheel1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//        GreenWheel2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         Kicker = hardwareMap.get(Servo.class, "wshoot");
 
@@ -60,30 +69,30 @@ public class DecodeAutoREDFARV1 extends LinearOpMode {
         Pose2d startpose = null;
 
         //------------------------------------------------CAMERA SETUP-------------------------------------------------------------
-//        initAprilTag();
-//        if (visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING) {
-//            telemetry.addData("Camera", "Waiting");
-//            telemetry.update();
-//            while (!isStopRequested() && (visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING)) {
-//                sleep(20);
-//            }
-//            telemetry.addData("Camera", "Ready");
-//            telemetry.update();
-//        }
-//        ExposureControl exposureControl = visionPortal.getCameraControl(ExposureControl.class);
-//        exposureControl.setMode(ExposureControl.Mode.Manual);
-//        exposureControl.setMode(ExposureControl.Mode.Manual);
-//        exposureControl.setExposure(exposure, TimeUnit.MICROSECONDS);
-//
-//        GainControl gainControl = visionPortal.getCameraControl(GainControl.class);
-//        gainControl.setGain(gain);
+        initAprilTag();
+        if (visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING) {
+            telemetry.addData("Camera", "Waiting");
+            telemetry.update();
+            while (!isStopRequested() && (visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING)) {
+                sleep(20);
+            }
+            telemetry.addData("Camera", "Ready");
+            telemetry.update();
+        }
+        ExposureControl exposureControl = visionPortal.getCameraControl(ExposureControl.class);
+        exposureControl.setMode(ExposureControl.Mode.Manual);
+        exposureControl.setMode(ExposureControl.Mode.Manual);
+        exposureControl.setExposure(exposure, TimeUnit.MICROSECONDS);
+
+        GainControl gainControl = visionPortal.getCameraControl(GainControl.class);
+        gainControl.setGain(gain);
 
         //------------------------------------------------APRILTAG DETECTION & LOCALIZATION-----------------------------------------------------
 //        List<Double> totalRobotX = new ArrayList<>();
 //        List<Double> totalRobotY = new ArrayList<>();
 //        List<Double> totalRobotYaw = new ArrayList<>();
 //        currentDetections = aprilTag.getDetections();
-//        int numTags = currentDetections.size();
+        int numTags = 0;
 //        myTimer.reset();
 //        while(numTags == 0 && myTimer.seconds() < 5 && !isStopRequested()) {
 //            currentDetections = aprilTag.getDetections();
@@ -149,7 +158,7 @@ public class DecodeAutoREDFARV1 extends LinearOpMode {
         if(startpose == null) {
             startpose = new Pose2d(66, 24, Math.toRadians(180));
         }
-        startpose = new Pose2d(66, 12, Math.toRadians(180));
+        startpose = new Pose2d(62, 12, Math.toRadians(180));
         drive.localizer.setPose(startpose);
 
         TrajectoryActionBuilder PreloadTraj = drive.actionBuilder(startpose)
@@ -163,75 +172,111 @@ public class DecodeAutoREDFARV1 extends LinearOpMode {
         //----------------------------------------------------------------RUN CODE------------------------------------------------------------------
         if(opModeIsActive()) {
             Actions.runBlocking(PreloadTraj.build());
+            myTimer.reset();
+            while(numTags == 0 && myTimer.milliseconds() < 500 && !isStopRequested()) {
+                currentDetections = aprilTag.getDetections();
+                numTags = currentDetections.size();
+            }
+            if(numTags > 0) {
+                currentDetection = findCornerAprilTags(currentDetections);
+
+                //TODO: Change this for the red side
+                double autoAimAdjustmentAngle = getAutoAimAdjustmentAngle(
+                        currentDetection.ftcPose.range,
+                        Math.sqrt(Math.pow(-72 - drive.localizer.getPose().position.x, 2) + Math.pow(72 - drive.localizer.getPose().position.y, 2))
+                );
+                if (!Double.isNaN(autoAimAdjustmentAngle)) {
+                    TrajectoryActionBuilder autoAim = drive.actionBuilder(drive.localizer.getPose()).turnTo(drive.localizer.getPose().heading.toDouble() + Math.toRadians(currentDetection.ftcPose.bearing - autoAimAdjustmentAngle) + Math.toRadians(3));
+                    Actions.runBlocking(autoAim.build());
+                    drive.updatePoseEstimate();
+                }
+            }
+            double adjustedHeading = drive.localizer.getPose().heading.toDouble();
+            if(adjustedHeading < Math.toRadians(120)) {
+                adjustedHeading = Math.toRadians(158);
+            }
+            drive.updatePoseEstimate();
+
             launchThreeFar();
             pause(500);
             TrajectoryActionBuilder firstSet = PreloadTraj.fresh()
-                    .splineToLinearHeading(new Pose2d(44,30,Math.toRadians(270)),Math.toRadians(90));
+                    .splineToLinearHeading(new Pose2d(36,30,Math.toRadians(270)),Math.toRadians(90));
 
             Actions.runBlocking(firstSet.build());
             IntakeMotor.setPower(0.75);
-            Actions.runBlocking(firstSet.fresh().setReversed(true).lineToY(54, new TranslationalVelConstraint(25)).build());
+            Actions.runBlocking(firstSet.fresh().setReversed(true).lineToY(60, new TranslationalVelConstraint(25)).build());
             IntakeMotor.setPower(0);
             Actions.runBlocking(
                     drive.actionBuilder(drive.localizer.getPose())
-                            .splineToLinearHeading(new Pose2d(60,12,Math.toRadians(155)), Math.toRadians(330))
+                            .splineToLinearHeading(new Pose2d(58,12,adjustedHeading), Math.toRadians(335))
                             .build()
             );
 
             launchThreeFar();
 
             TrajectoryActionBuilder secondSet = drive.actionBuilder(drive.localizer.getPose())
-                    .splineToLinearHeading(new Pose2d(20,30,Math.toRadians(270)),Math.toRadians(90));
+                    .splineToLinearHeading(new Pose2d(12,30,Math.toRadians(270)),Math.toRadians(90));
             Actions.runBlocking(secondSet.build());
             IntakeMotor.setPower(0.75);
-            Actions.runBlocking(drive.actionBuilder(drive.localizer.getPose()).setReversed(true).lineToY(54, new TranslationalVelConstraint(25)).build());
+            Actions.runBlocking(drive.actionBuilder(drive.localizer.getPose()).setReversed(true).lineToY(60, new TranslationalVelConstraint(25)).build());
             IntakeMotor.setPower(0);
             Actions.runBlocking(
                     drive.actionBuilder(drive.localizer.getPose())
-                            .splineToLinearHeading(new Pose2d(60,14,Math.toRadians(160)), Math.toRadians(330))
+                            .splineToLinearHeading(new Pose2d(58,12,adjustedHeading), Math.toRadians(335))
                             .build()
             );
-
             launchThreeFar();
-            Actions.runBlocking(drive.actionBuilder(drive.localizer.getPose()).splineToConstantHeading(new Vector2d(45,20),Math.toRadians(90)).build());
+
+
+            Actions.runBlocking(drive.actionBuilder(drive.localizer.getPose()).splineToConstantHeading(new Vector2d(40,25),Math.toRadians(90)).build());
         }
     }
 
     private void launchThreeFar() {
-        GreenWheel1.setVelocity(maxVelocity * 0.32);
-        GreenWheel2.setVelocity(maxVelocity * 0.32);
-        Kicker.setPosition(0);
-        pause(1000);
-        myTimer.reset();
-        while(myTimer.milliseconds() < 500) {
-            Kicker.setPosition(0.7);
-        }
-        pause(1000);
-        Kicker.setPosition(0);
+        ElapsedTime targetTimer = new ElapsedTime();
+        double[] powers = {1080,1080,1020};
+        double target;
+        boolean targetreached = false;
 
-        GreenWheel1.setVelocity(maxVelocity * 0.35);
-        GreenWheel2.setVelocity(maxVelocity * 0.35);
-        Kicker.setPosition(0);
-        pause(1000);
-        myTimer.reset();
-        while(myTimer.milliseconds() < 500) {
-            Kicker.setPosition(0.7);
+        for(int i = 0; i < 3; i++) {
+            target = powers[i];
+//            GreenWheel1.setVelocity(maxVelocity * powers[i]);
+//            GreenWheel2.setVelocity(maxVelocity * powers[i]);
+            targetTimer.reset();
+            while(flywheels.flywheel1.getVelocity() != target && !isStopRequested() && targetTimer.milliseconds() <= 500) {
+                flywheels.setVelocity(target);
+                if(flywheels.flywheel1.getVelocity() == target && targetreached == false) {
+                    targetreached = true;
+                    targetTimer.reset();
+                }
+            }
+            myTimer.reset();
+            while(myTimer.milliseconds() < 100) {
+                Kicker.setPosition(0);
+            }
+            if(i >= 1) {
+                IntakeMotor.setPower(0.5);
+                pause(500);
+//                IntakeMotor.setPower(0);
+//                pause(500);
+            }
+            else {
+                pause(500);
+            }
+            myTimer.reset();
+            while(myTimer.milliseconds() < 100) {
+                Kicker.setPosition(0.7);
+            }
+            pause(250);
+            Kicker.setPosition(0);
         }
-        pause(1000);
-        Kicker.setPosition(0);
-
-        IntakeMotor.setPower(0.5);
-        pause(500);
         IntakeMotor.setPower(0);
-        myTimer.reset();
-        while(myTimer.milliseconds() < 500) {
-            Kicker.setPosition(0.7);
+        target = 0;
+        while(flywheels.flywheel1.getVelocity() != target && !isStopRequested()) {
+            flywheels.setVelocity(0);
         }
-        pause(1000);
-        Kicker.setPosition(0);
-        GreenWheel1.setVelocity(0);
-        GreenWheel2.setVelocity(0);
-        pause(1000);
+//        GreenWheel1.setVelocity(0);
+//        GreenWheel2.setVelocity(0);
     }
 
     private void initAprilTag() {
@@ -306,5 +351,17 @@ public class DecodeAutoREDFARV1 extends LinearOpMode {
         while(myTimer.milliseconds() < milliseconds && !isStopRequested()) {
 
         }
+    }
+    private double getAutoAimAdjustmentAngle(double aprilTagDistance, double cornerDistance) {
+        double aprilTagDistanceSquared = Math.pow(aprilTagDistance, 2);
+        double cornerDistanceSquared = Math.pow(cornerDistance, 2);
+        double aprilTagtoCornerSquared = 512.0;
+        double angle = Math.acos((aprilTagtoCornerSquared - aprilTagDistanceSquared - cornerDistanceSquared) / (-2 * aprilTagDistance * cornerDistance));
+        return angle * 0.7;
+//        if(angle > 0) {
+//        }
+//        else {
+//            return 0;
+//        }
     }
 }
