@@ -152,9 +152,9 @@ public class DecodeAutoREDCLOSEV1 extends LinearOpMode {
 
         //------------------------------------------------ROADRUNNER FIRST TRAJECTORY-------------------------------------------------------------
         //backup in case no apriltag was detected
-        if(startpose == null) {
-            startpose = new Pose2d(-56 + 6.36, 56 - 6.36, Math.toRadians(135));
-        }
+//        if(startpose == null) {
+//            startpose = new Pose2d(-56 + 6.36, 56 - 6.36, Math.toRadians(135));
+//        }
         startpose = new Pose2d(-56 + 6.36, 56 - 6.36, Math.toRadians(135));
         drive.localizer.setPose(startpose);
 
@@ -170,11 +170,11 @@ public class DecodeAutoREDCLOSEV1 extends LinearOpMode {
             Actions.runBlocking(PreloadTraj.build());
             launchThreeFar();
             TrajectoryActionBuilder firstSet = PreloadTraj.fresh()
-                    .splineToLinearHeading(new Pose2d(-10,30,Math.toRadians(271)),Math.toRadians(90), new TranslationalVelConstraint(75));
+                    .splineToLinearHeading(new Pose2d(-10,30,Math.toRadians(271)),Math.toRadians(90));
 
             Actions.runBlocking(firstSet.build());
             IntakeMotor.setPower(0.75);
-            Actions.runBlocking(firstSet.fresh().setReversed(true).lineToY(56, new TranslationalVelConstraint(30)).build());
+            Actions.runBlocking(firstSet.fresh().setReversed(true).lineToY(56, new TranslationalVelConstraint(50)).build());
             IntakeMotor.setPower(0);
             Actions.runBlocking(
                     drive.actionBuilder(drive.localizer.getPose())
@@ -188,7 +188,7 @@ public class DecodeAutoREDCLOSEV1 extends LinearOpMode {
                     .splineToLinearHeading(new Pose2d(14,30,Math.toRadians(270)),Math.toRadians(90));
             Actions.runBlocking(secondSet.build());
             IntakeMotor.setPower(0.75);
-            Actions.runBlocking(drive.actionBuilder(drive.localizer.getPose()).setReversed(true).lineToY(66, new TranslationalVelConstraint(35)).build());
+            Actions.runBlocking(drive.actionBuilder(drive.localizer.getPose()).setReversed(true).lineToY(66, new TranslationalVelConstraint(70)).build());
             IntakeMotor.setPower(0);
             Actions.runBlocking(
                     drive.actionBuilder(drive.localizer.getPose())
@@ -197,20 +197,32 @@ public class DecodeAutoREDCLOSEV1 extends LinearOpMode {
             );
             launchThreeFar();
 
-
-            Actions.runBlocking(drive.actionBuilder(drive.localizer.getPose()).splineToConstantHeading(new Vector2d(6,24),Math.toRadians(90)).build());
+//            TrajectoryActionBuilder thirdSet = drive.actionBuilder(drive.localizer.getPose())
+//                            .splineToLinearHeading(new Pose2d(38,30,Math.toRadians(270)),Math.toRadians(90));
+//            Actions.runBlocking(thirdSet.build());
+//            IntakeMotor.setPower(0.75);
+//            Actions.runBlocking(drive.actionBuilder(drive.localizer.getPose()).setReversed(true).lineToY(66, new TranslationalVelConstraint(70)).build());
+//            IntakeMotor.setPower(0);
+//            Actions.runBlocking(
+//                    drive.actionBuilder(drive.localizer.getPose())
+//                            .splineToLinearHeading(new Pose2d(-15,-15,Math.toRadians(225)), Math.toRadians(225))
+//                            .build()
+//            );
+//            launchThreeFar();
+//
+//
+            Actions.runBlocking(drive.actionBuilder(drive.localizer.getPose()).splineToConstantHeading(new Vector2d(6,24),Math.toRadians(270)).build());
         }
     }
 
     private void launchThreeFar() {
         ElapsedTime targetTimer = new ElapsedTime();
-        double[] powers = {860 * multiplier,880 * multiplier,860 * multiplier};
+        double[] powers = {900 * multiplier,940 * multiplier,920 * multiplier};
         double target;
         boolean targetreached = false;
 
         for(int i = 0; i < 3; i++) {
             target = powers[i];
-
 //            GreenWheel1.setVelocity(maxVelocity * powers[i]);
 //            GreenWheel2.setVelocity(maxVelocity * powers[i]);
             targetTimer.reset();
@@ -222,23 +234,26 @@ public class DecodeAutoREDCLOSEV1 extends LinearOpMode {
                 }
             }
             myTimer.reset();
-            while(myTimer.milliseconds() < 100) {
+            while(myTimer.milliseconds() < 50) {
                 Kicker.setPosition(0);
             }
-            if(i >= 1) {
-                IntakeMotor.setPower(0.5);
-                pause(500);
+            if(i == 1) {
+                IntakeMotor.setPower(0.7);
+                pause(350);
 //                IntakeMotor.setPower(0);
 //                pause(500);
             }
+            else if(i == 2) {
+                pause(350);
+            }
             else {
-                pause(500);
+                pause(150);
             }
             myTimer.reset();
-            while(myTimer.milliseconds() < 100) {
+            while(myTimer.milliseconds() < 200) {
                 Kicker.setPosition(0.7);
             }
-            pause(250);
+//            pause(50);
             Kicker.setPosition(0);
         }
         IntakeMotor.setPower(0);

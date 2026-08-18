@@ -38,7 +38,7 @@ public class DecodeAutoREDFARV1 extends LinearOpMode {
     List<AprilTagDetection> currentDetections = null;
     AprilTagDetection currentDetection;
 
-    public long exposure = (long)300;
+    public long exposure = (long)800;
     public int gain = 200;
     ElapsedTime myTimer = new ElapsedTime();
 
@@ -155,9 +155,9 @@ public class DecodeAutoREDFARV1 extends LinearOpMode {
 
         //------------------------------------------------ROADRUNNER FIRST TRAJECTORY-------------------------------------------------------------
         //backup in case no apriltag was detected
-        if(startpose == null) {
-            startpose = new Pose2d(66, 24, Math.toRadians(180));
-        }
+//        if(startpose == null) {
+//            startpose = new Pose2d(66, 24, Math.toRadians(180));
+//        }
         startpose = new Pose2d(62, 12, Math.toRadians(180));
         drive.localizer.setPose(startpose);
 
@@ -173,11 +173,11 @@ public class DecodeAutoREDFARV1 extends LinearOpMode {
         if(opModeIsActive()) {
             Actions.runBlocking(PreloadTraj.build());
             myTimer.reset();
-            while(numTags == 0 && myTimer.milliseconds() < 500 && !isStopRequested()) {
+            while (numTags == 0 && myTimer.milliseconds() < 500 && !isStopRequested()) {
                 currentDetections = aprilTag.getDetections();
                 numTags = currentDetections.size();
             }
-            if(numTags > 0) {
+            if (numTags > 0) {
                 currentDetection = findCornerAprilTags(currentDetections);
 
                 //TODO: Change this for the red side
@@ -186,26 +186,39 @@ public class DecodeAutoREDFARV1 extends LinearOpMode {
                         Math.sqrt(Math.pow(-72 - drive.localizer.getPose().position.x, 2) + Math.pow(72 - drive.localizer.getPose().position.y, 2))
                 );
                 if (!Double.isNaN(autoAimAdjustmentAngle)) {
-                    TrajectoryActionBuilder autoAim = drive.actionBuilder(drive.localizer.getPose()).turnTo(drive.localizer.getPose().heading.toDouble() + Math.toRadians(currentDetection.ftcPose.bearing - autoAimAdjustmentAngle) + Math.toRadians(3));
+                    TrajectoryActionBuilder autoAim = drive.actionBuilder(drive.localizer.getPose()).turnTo(drive.localizer.getPose().heading.toDouble() + Math.toRadians(currentDetection.ftcPose.bearing - autoAimAdjustmentAngle));
                     Actions.runBlocking(autoAim.build());
-                    drive.updatePoseEstimate();
                 }
             }
             double adjustedHeading = drive.localizer.getPose().heading.toDouble();
             if(adjustedHeading < Math.toRadians(120)) {
                 adjustedHeading = Math.toRadians(158);
             }
-            drive.updatePoseEstimate();
 
             launchThreeFar();
             pause(500);
-            TrajectoryActionBuilder firstSet = PreloadTraj.fresh()
-                    .splineToLinearHeading(new Pose2d(36,30,Math.toRadians(270)),Math.toRadians(90));
+            TrajectoryActionBuilder cornerSet = drive.actionBuilder(drive.localizer.getPose())
+                    .splineToLinearHeading(new Pose2d(56, 48,Math.toRadians(270)),Math.toRadians(90));
+            Actions.runBlocking(cornerSet.build());
 
-            Actions.runBlocking(firstSet.build());
             IntakeMotor.setPower(0.75);
-            Actions.runBlocking(firstSet.fresh().setReversed(true).lineToY(60, new TranslationalVelConstraint(25)).build());
+            Actions.runBlocking(cornerSet.fresh()
+                    .setReversed(true)
+                    .lineToY(62,new TranslationalVelConstraint(25))
+                    .waitSeconds(0.5)
+                    .lineToY(50)
+                    .turn(Math.toRadians(-20))
+                    .splineToConstantHeading(new Vector2d(60,62), Math.toRadians(45), new TranslationalVelConstraint(15))
+                    .build());
             IntakeMotor.setPower(0);
+
+//            TrajectoryActionBuilder firstSet = drive.actionBuilder(drive.localizer.getPose())
+//                    .splineToLinearHeading(new Pose2d(36,30,Math.toRadians(270)),Math.toRadians(91));
+//
+//            Actions.runBlocking(firstSet.build());
+//            IntakeMotor.setPower(0.75);
+//            Actions.runBlocking(firstSet.fresh().setReversed(true).lineToY(60, new TranslationalVelConstraint(25)).build());
+//            IntakeMotor.setPower(0);
             Actions.runBlocking(
                     drive.actionBuilder(drive.localizer.getPose())
                             .splineToLinearHeading(new Pose2d(58,12,adjustedHeading), Math.toRadians(335))
@@ -213,28 +226,28 @@ public class DecodeAutoREDFARV1 extends LinearOpMode {
             );
 
             launchThreeFar();
+//
+//            TrajectoryActionBuilder secondSet = drive.actionBuilder(drive.localizer.getPose())
+//                    .splineToLinearHeading(new Pose2d(12,30,Math.toRadians(270)),Math.toRadians(91));
+//            Actions.runBlocking(secondSet.build());
+//            IntakeMotor.setPower(0.75);
+//            Actions.runBlocking(drive.actionBuilder(drive.localizer.getPose()).setReversed(true).lineToY(60, new TranslationalVelConstraint(25)).build());
+//            IntakeMotor.setPower(0);
+//            Actions.runBlocking(
+//                    drive.actionBuilder(drive.localizer.getPose())
+//                            .splineToLinearHeading(new Pose2d(58,12,adjustedHeading), Math.toRadians(335))
+//                            .build()
+//            );
+//            launchThreeFar();
 
-            TrajectoryActionBuilder secondSet = drive.actionBuilder(drive.localizer.getPose())
-                    .splineToLinearHeading(new Pose2d(12,30,Math.toRadians(270)),Math.toRadians(90));
-            Actions.runBlocking(secondSet.build());
-            IntakeMotor.setPower(0.75);
-            Actions.runBlocking(drive.actionBuilder(drive.localizer.getPose()).setReversed(true).lineToY(60, new TranslationalVelConstraint(25)).build());
-            IntakeMotor.setPower(0);
-            Actions.runBlocking(
-                    drive.actionBuilder(drive.localizer.getPose())
-                            .splineToLinearHeading(new Pose2d(58,12,adjustedHeading), Math.toRadians(335))
-                            .build()
-            );
-            launchThreeFar();
-
-
-            Actions.runBlocking(drive.actionBuilder(drive.localizer.getPose()).splineToConstantHeading(new Vector2d(40,25),Math.toRadians(90)).build());
+//            Actions.runBlocking(drive.actionBuilder(drive.localizer.getPose()).splineToConstantHeading(new Vector2d(45, -20), Math.toRadians(270)).build());
+            Actions.runBlocking(drive.actionBuilder(drive.localizer.getPose()).strafeTo(new Vector2d(62,36), new TranslationalVelConstraint(25)).build());
         }
     }
 
     private void launchThreeFar() {
         ElapsedTime targetTimer = new ElapsedTime();
-        double[] powers = {1080,1080,1020};
+        double[] powers = {1080,1040,1040};
         double target;
         boolean targetreached = false;
 
@@ -357,7 +370,7 @@ public class DecodeAutoREDFARV1 extends LinearOpMode {
         double cornerDistanceSquared = Math.pow(cornerDistance, 2);
         double aprilTagtoCornerSquared = 512.0;
         double angle = Math.acos((aprilTagtoCornerSquared - aprilTagDistanceSquared - cornerDistanceSquared) / (-2 * aprilTagDistance * cornerDistance));
-        return angle * 0.7;
+        return angle * 0.5;
 //        if(angle > 0) {
 //        }
 //        else {

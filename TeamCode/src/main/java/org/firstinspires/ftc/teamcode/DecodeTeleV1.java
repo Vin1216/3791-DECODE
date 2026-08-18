@@ -48,7 +48,7 @@ public class DecodeTeleV1 extends LinearOpMode {
     AprilTagDetection currentDetection;
 
 
-    public long exposure = (long)500;
+    public long exposure = (long)1000;
     public int gain = 200;
 
     private ElapsedTime myTimer = new ElapsedTime();
@@ -291,6 +291,7 @@ public class DecodeTeleV1 extends LinearOpMode {
                 if (gamepad1.xWasPressed()) {
                     flywheels.setVelocity(0);
                     flywheelsActive = false;
+                    Kicker.setPosition(0);
                     Reverse = 1;
                 }
                 if (gamepad1.yWasPressed()) {
@@ -322,7 +323,7 @@ public class DecodeTeleV1 extends LinearOpMode {
                     velocity = 1040;
                 }
                 if(gamepad2.dpadDownWasPressed()) {
-                    velocity = 940;
+                    velocity = 960;
                 }
 //                if(gamepad2.right_trigger > 0) {
 //                    visionPortal.stopStreaming();
@@ -387,17 +388,25 @@ public class DecodeTeleV1 extends LinearOpMode {
                                 currentDetection.ftcPose.range,
                                 Math.sqrt(Math.pow(-72 - drive.localizer.getPose().position.x, 2) + Math.pow(-72 - drive.localizer.getPose().position.y, 2))
                         );
+                        if(!Double.isNaN(autoAimAdjustmentAngle)) {
+                            traj = drive.actionBuilder(drive.localizer.getPose()).turn(Math.toRadians(currentDetection.ftcPose.bearing - autoAimAdjustmentAngle));
+                            Actions.runBlocking(traj.build());
+                        }
                     }
-                    else {
+                    else if(colorID == 24) {
                         autoAimAdjustmentAngle = getAutoAimAdjustmentAngle(
                                 currentDetection.ftcPose.range,
                                 Math.sqrt(Math.pow(-72 - drive.localizer.getPose().position.x, 2) + Math.pow(72 - drive.localizer.getPose().position.y, 2))
                         );
+                        if(!Double.isNaN(autoAimAdjustmentAngle)) {
+                            traj = drive.actionBuilder(drive.localizer.getPose()).turn(Math.toRadians(currentDetection.ftcPose.bearing + autoAimAdjustmentAngle));
+                            Actions.runBlocking(traj.build());
+                        }
                     }
-                    if(!Double.isNaN(autoAimAdjustmentAngle)) {
-                        traj = drive.actionBuilder(drive.localizer.getPose()).turn(Math.toRadians(currentDetection.ftcPose.bearing - autoAimAdjustmentAngle));
-                        Actions.runBlocking(traj.build());
-                    }
+//                    if(!Double.isNaN(autoAimAdjustmentAngle)) {
+//                        traj = drive.actionBuilder(drive.localizer.getPose()).turn(Math.toRadians(currentDetection.ftcPose.bearing - autoAimAdjustmentAngle));
+//                        Actions.runBlocking(traj.build());
+//                    }
 //                    telemetry.addData("autoAimAdjustmentAngle", autoAimAdjustmentAngle);
                 }
 
@@ -506,7 +515,7 @@ public class DecodeTeleV1 extends LinearOpMode {
         double cornerDistanceSquared = Math.pow(cornerDistance, 2);
         double aprilTagtoCornerSquared = 512.0;
         double angle = Math.acos((aprilTagtoCornerSquared - aprilTagDistanceSquared - cornerDistanceSquared) / (-2 * aprilTagDistance * cornerDistance));
-        return angle * 0.5;
+        return angle;
 //        if(angle > 0) {
 //        }
 //        else {

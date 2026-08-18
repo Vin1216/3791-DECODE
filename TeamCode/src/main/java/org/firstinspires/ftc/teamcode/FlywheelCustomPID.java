@@ -8,10 +8,11 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class FlywheelCustomPID {
     DcMotorEx flywheel1, flywheel2;
     public static double P = 0.001;
-    public static double D = 0.00001;
+    public static double D = 0.00002;
     public static double F = 0.00042;
     ElapsedTime flywheelTimer = new ElapsedTime();
     double decelerationCoefficient = 1;
+    double errorSync = 0;
     public FlywheelCustomPID(HardwareMap hardwareMap) {
         flywheel1 = hardwareMap.get(DcMotorEx.class, "flywheel1");
         flywheel2 = hardwareMap.get(DcMotorEx.class, "flywheel2");
@@ -25,16 +26,19 @@ public class FlywheelCustomPID {
         else {
             decelerationCoefficient = 1;
         }
+        errorSync = (flywheel1.getVelocity() - flywheel2.getVelocity()) * 0.001;
         flywheel1.setPower(
                 (P*(velocity - flywheel1.getVelocity())
                 + D * (velocity - flywheel1.getVelocity()) / flywheelTimer.seconds()
                 + F * velocity)
                 * decelerationCoefficient
+                - errorSync
         );
         flywheel2.setPower((P*(velocity - flywheel2.getVelocity())
                 + D * (velocity - flywheel2.getVelocity()) / flywheelTimer.seconds()
                 + F * velocity)
                 * decelerationCoefficient
+                + errorSync
         );
         flywheelTimer.reset();
     }

@@ -34,7 +34,7 @@ public class DecodeAutoBLUEFARV1 extends LinearOpMode {
     List<AprilTagDetection> currentDetections = null;
     AprilTagDetection currentDetection;
 
-    public long exposure = (long)600;
+    public long exposure = (long)800;
     public int gain = 200;
     ElapsedTime myTimer = new ElapsedTime();
 
@@ -159,6 +159,7 @@ public class DecodeAutoBLUEFARV1 extends LinearOpMode {
         drive.localizer.setPose(startpose);
 
         TrajectoryActionBuilder PreloadTraj = drive.actionBuilder(startpose)
+//                .strafeTo(new Vector2d(startpose.position.x - 4, startpose.position.y - 28))
                 .lineToX(startpose.position.x - 4)
                 .turnTo(Math.toRadians(202));
         telemetry.addData("FinalPoseX",startpose.position.x);
@@ -184,17 +185,33 @@ public class DecodeAutoBLUEFARV1 extends LinearOpMode {
                         Math.sqrt(Math.pow(-72 - drive.localizer.getPose().position.x, 2) + Math.pow(-72 - drive.localizer.getPose().position.y, 2))
                 );
                 if (!Double.isNaN(autoAimAdjustmentAngle)) {
-                    TrajectoryActionBuilder autoAim = drive.actionBuilder(drive.localizer.getPose()).turnTo(drive.localizer.getPose().heading.toDouble() + Math.toRadians(currentDetection.ftcPose.bearing - autoAimAdjustmentAngle) + Math.toRadians(3));
+                    TrajectoryActionBuilder autoAim = drive.actionBuilder(drive.localizer.getPose()).turnTo(drive.localizer.getPose().heading.toDouble() + Math.toRadians(currentDetection.ftcPose.bearing - autoAimAdjustmentAngle));
                     Actions.runBlocking(autoAim.build());
                 }
             }
             double adjustedHeading = drive.localizer.getPose().heading.toDouble();
             if(adjustedHeading < Math.toRadians(200)) {
-                adjustedHeading = 202;
+                adjustedHeading = Math.toRadians(202);
             }
 
             launchThreeFar();
             pause(500);
+            TrajectoryActionBuilder cornerSet = drive.actionBuilder(drive.localizer.getPose())
+                    .splineToLinearHeading(new Pose2d(56, -48,Math.toRadians(90)),Math.toRadians(270));
+            Actions.runBlocking(cornerSet.build());
+
+            IntakeMotor.setPower(0.75);
+            Actions.runBlocking(cornerSet.fresh()
+                    .setReversed(true)
+                    .lineToY(-62,new TranslationalVelConstraint(25))
+                    .waitSeconds(0.5)
+                    .lineToY(-50)
+                    .turn(Math.toRadians(20))
+                    .splineToConstantHeading(new Vector2d(60,-62), Math.toRadians(225), new TranslationalVelConstraint(15))
+                    .build());
+            IntakeMotor.setPower(0);
+
+
 //            TrajectoryActionBuilder firstSet = drive.actionBuilder(drive.localizer.getPose())
 //                    .splineToLinearHeading(new Pose2d(36, -30, Math.toRadians(90)), Math.toRadians(270));
 //
@@ -202,13 +219,13 @@ public class DecodeAutoBLUEFARV1 extends LinearOpMode {
 //            IntakeMotor.setPower(0.75);
 //            Actions.runBlocking(firstSet.fresh().setReversed(true).lineToY(-60, new TranslationalVelConstraint(25)).build());
 //            IntakeMotor.setPower(0);
-//            Actions.runBlocking(
-//                    drive.actionBuilder(drive.localizer.getPose())
-//                            .splineToLinearHeading(new Pose2d(58, -12, adjustedHeading), Math.toRadians(30))
-//                            .build()
-//            );
-//
-//            launchThreeFar();
+            Actions.runBlocking(
+                    drive.actionBuilder(drive.localizer.getPose())
+                            .splineToLinearHeading(new Pose2d(58, -12, adjustedHeading), Math.toRadians(30))
+                            .build()
+            );
+
+            launchThreeFar();
 //
 //            TrajectoryActionBuilder secondSet = drive.actionBuilder(drive.localizer.getPose())
 //                    .splineToLinearHeading(new Pose2d(12, -30, Math.toRadians(90)), Math.toRadians(270));
@@ -224,14 +241,15 @@ public class DecodeAutoBLUEFARV1 extends LinearOpMode {
 //            launchThreeFar();
 
 
-//            Actions.runBlocking(drive.actionBuilder(drive.localizer.getPose()).splineToConstantHeading(new Vector2d(45, -20), Math.toRadians(270)).build());
-            Actions.runBlocking(drive.actionBuilder(drive.localizer.getPose()).strafeTo(new Vector2d(62,-36), new TranslationalVelConstraint(25)).build());
+            Actions.runBlocking(drive.actionBuilder(drive.localizer.getPose()).splineToConstantHeading(new Vector2d(45, -20), Math.toRadians(270)).build());
+//            Actions.runBlocking(drive.actionBuilder(drive.localizer.getPose()).strafeTo(new Vector2d(62,-36), new TranslationalVelConstraint(25)).build());
         }
     }
 
     private void launchThreeFar() {
         ElapsedTime targetTimer = new ElapsedTime();
-        double[] powers = {1020,980,1020};
+        double[] powers = {1080,1040,1040};
+//        double[] powers = {1200,1200,1200};
         double target;
         boolean targetreached = false;
 
@@ -355,7 +373,7 @@ public class DecodeAutoBLUEFARV1 extends LinearOpMode {
         double cornerDistanceSquared = Math.pow(cornerDistance, 2);
         double aprilTagtoCornerSquared = 512.0;
         double angle = Math.acos((aprilTagtoCornerSquared - aprilTagDistanceSquared - cornerDistanceSquared) / (-2 * aprilTagDistance * cornerDistance));
-        return angle * 0.7;
+        return angle * 0.5;
 //        if(angle > 0) {
 //        }
 //        else {

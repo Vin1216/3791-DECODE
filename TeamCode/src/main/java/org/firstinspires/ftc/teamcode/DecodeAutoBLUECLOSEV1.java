@@ -187,7 +187,7 @@ public class DecodeAutoBLUECLOSEV1 extends LinearOpMode {
                     .splineToLinearHeading(new Pose2d(14,-30,Math.toRadians(90)),Math.toRadians(270));
             Actions.runBlocking(secondSet.build());
             IntakeMotor.setPower(0.75);
-            Actions.runBlocking(drive.actionBuilder(drive.localizer.getPose()).setReversed(true).lineToY(-66, new TranslationalVelConstraint(60)).build());
+            Actions.runBlocking(drive.actionBuilder(drive.localizer.getPose()).setReversed(true).lineToY(-66, new TranslationalVelConstraint(70)).build());
             IntakeMotor.setPower(0);
             Actions.runBlocking(
                     drive.actionBuilder(drive.localizer.getPose())
@@ -196,14 +196,27 @@ public class DecodeAutoBLUECLOSEV1 extends LinearOpMode {
             );
             launchThreeFar();
 
-
+//            TrajectoryActionBuilder thirdSet = drive.actionBuilder(drive.localizer.getPose())
+//                            .splineToLinearHeading(new Pose2d(38,-30,Math.toRadians(90)),Math.toRadians(270));
+//            Actions.runBlocking(thirdSet.build());
+//            IntakeMotor.setPower(0.75);
+//            Actions.runBlocking(drive.actionBuilder(drive.localizer.getPose()).setReversed(true).lineToY(-66, new TranslationalVelConstraint(70)).build());
+//            IntakeMotor.setPower(0);
+//            Actions.runBlocking(
+//                    drive.actionBuilder(drive.localizer.getPose())
+//                            .splineToLinearHeading(new Pose2d(-15,-15,Math.toRadians(225)), Math.toRadians(225))
+//                            .build()
+//            );
+//            launchThreeFar();
+//
+//
             Actions.runBlocking(drive.actionBuilder(drive.localizer.getPose()).splineToConstantHeading(new Vector2d(6,-24),Math.toRadians(270)).build());
         }
     }
 
     private void launchThreeFar() {
         ElapsedTime targetTimer = new ElapsedTime();
-        double[] powers = {860,880,860};
+        double[] powers = {900,940,920};
         double target;
         boolean targetreached = false;
 
@@ -225,15 +238,18 @@ public class DecodeAutoBLUECLOSEV1 extends LinearOpMode {
             }
             if(i == 1) {
                 IntakeMotor.setPower(0.7);
-                pause(250);
+                pause(350);
 //                IntakeMotor.setPower(0);
 //                pause(500);
             }
+            else if(i == 2) {
+                pause(350);
+            }
             else {
-                pause(250);
+                pause(150);
             }
             myTimer.reset();
-            while(myTimer.milliseconds() < 250) {
+            while(myTimer.milliseconds() < 200) {
                 Kicker.setPosition(0.7);
             }
 //            pause(50);
